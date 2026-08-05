@@ -1,0 +1,27 @@
+# Xcode user state
+*.xcuserstate
+xcuserdata/
+
+# Build output
+DerivedData/
+build/
+.gradle/
+.idea/
+.hvigor/
+node_modules/
+oh_modules/
+local.properties
+signing.properties
+apps/android/release/
+**/*.jks
+**/*.keystore
+**/signing-config.json5
+**/*.p12
+**/*.p7b
+**/*.cer
+.appanalyzer/
+**/.test/
+**/.preview/
+
+# macOS metadata
+.DS_Store

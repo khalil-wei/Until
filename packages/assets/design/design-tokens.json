@@ -1,0 +1,30 @@
+{
+  "color": {
+    "background": "#F4F7F5",
+    "surface": "#FFFFFF",
+    "primary": "#08A88F",
+    "primarySoft": "#E7F5F1",
+    "text": "#1F2926",
+    "secondaryText": "#6F7B77",
+    "tertiaryText": "#9AA7A2",
+    "divider": "#E2EAE6",
+    "danger": "#D94A5B"
+  },
+  "dimension": {
+    "pagePadding": 20,
+    "sectionSpacing": 20,
+    "controlSpacing": 12,
+    "cardRadius": 16,
+    "controlRadius": 12,
+    "minimumHitTarget": 44,
+    "primaryButtonHeight": 48,
+    "eventRowMinimumHeight": 88
+  },
+  "typography": {
+    "pageTitle": 34,
+    "sectionTitle": 14,
+    "body": 15,
+    "caption": 12,
+    "eventCountdown": 30
+  }
+}

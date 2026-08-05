@@ -1,0 +1,32 @@
+[
+  {
+    "name": "same day reminder",
+    "nextOccurrence": "2026-07-10",
+    "reminderLeadTime": 0,
+    "expectedReminderDateTime": "2026-07-10T09:00:00"
+  },
+  {
+    "name": "one day reminder",
+    "nextOccurrence": "2026-07-10",
+    "reminderLeadTime": 1,
+    "expectedReminderDateTime": "2026-07-09T09:00:00"
+  },
+  {
+    "name": "three day reminder",
+    "nextOccurrence": "2026-07-10",
+    "reminderLeadTime": 3,
+    "expectedReminderDateTime": "2026-07-07T09:00:00"
+  },
+  {
+    "name": "seven day reminder",
+    "nextOccurrence": "2026-07-10",
+    "reminderLeadTime": 7,
+    "expectedReminderDateTime": "2026-07-03T09:00:00"
+  },
+  {
+    "name": "no reminder",
+    "nextOccurrence": "2026-07-10",
+    "reminderLeadTime": -1,
+    "expectedReminderDateTime": null
+  }
+]

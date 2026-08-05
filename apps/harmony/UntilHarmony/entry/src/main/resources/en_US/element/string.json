@@ -1,0 +1,48 @@
+{
+  "string": [
+    {
+      "name": "app_name",
+      "value": "Until"
+    },
+    {
+      "name": "module_desc",
+      "value": "Until for HarmonyOS"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "Until"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "Until"
+    },
+    {
+      "name": "CountdownCard_label",
+      "value": "Until Card"
+    },
+    {
+      "name": "CountdownCardSmall_label",
+      "value": "Until Small"
+    },
+    {
+      "name": "CountdownCardMedium_label",
+      "value": "Until Medium"
+    },
+    {
+      "name": "CountdownCardLarge_label",
+      "value": "Until Large"
+    },
+    {
+      "name": "CountdownCard_desc",
+      "value": "View your nearest important days"
+    },
+    {
+      "name": "calendar_read_permission_reason",
+      "value": "Access device calendar events synced by Until"
+    },
+    {
+      "name": "calendar_write_permission_reason",
+      "value": "Create, update, or delete calendar events synced by Until after confirmation"
+    }
+  ]
+}

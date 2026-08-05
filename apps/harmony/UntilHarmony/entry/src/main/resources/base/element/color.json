@@ -1,0 +1,26 @@
+{
+  "color": [
+    { "name": "start_window_background", "value": "#F4F6F4" },
+    { "name": "page_background", "value": "#F5F7FA" },
+    { "name": "material_background", "value": "#F0F2F5" },
+    { "name": "card_background", "value": "#FFFFFF" },
+    { "name": "elevated_background", "value": "#F9F9FB" },
+    { "name": "primary_text", "value": "#1C1C1E" },
+    { "name": "secondary_text", "value": "#636366" },
+    { "name": "tertiary_text", "value": "#8E8E93" },
+    { "name": "separator", "value": "#E5E5EA" },
+    { "name": "brand", "value": "#0A9B86" },
+    { "name": "brand_dark", "value": "#087766" },
+    { "name": "brand_soft", "value": "#E4F6F2" },
+    { "name": "warning", "value": "#D47A20" },
+    { "name": "warning_soft", "value": "#FAEEDA" },
+    { "name": "danger", "value": "#C44761" },
+    { "name": "danger_soft", "value": "#F8E6EA" },
+    { "name": "upcoming", "value": "#5270C9" },
+    { "name": "upcoming_soft", "value": "#E9EDFA" },
+    { "name": "distant", "value": "#2F8E75" },
+    { "name": "distant_soft", "value": "#E3F2ED" },
+    { "name": "disabled_background", "value": "#ECECF1" },
+    { "name": "disabled_text", "value": "#AEAEB2" }
+  ]
+}

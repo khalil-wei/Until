@@ -1,0 +1,43 @@
+[
+  {
+    "daysUntil": 42,
+    "zhLabelKey": "easter_egg.special.42",
+    "enLabelKey": "easter_egg.special.42"
+  },
+  {
+    "daysUntil": 365,
+    "zhLabelKey": "easter_egg.special.365",
+    "enLabelKey": "easter_egg.special.365"
+  },
+  {
+    "daysUntil": 520,
+    "zhLabelKey": "easter_egg.special.520",
+    "enLabelKey": null
+  },
+  {
+    "daysUntil": 41,
+    "zhLabelKey": null,
+    "enLabelKey": null
+  },
+  {
+    "daysUntil": 1000,
+    "zhLabelKey": null,
+    "enLabelKey": null,
+    "distantRevealEligible": true,
+    "arrivalCelebrationEligible": false
+  },
+  {
+    "daysUntil": 999,
+    "zhLabelKey": null,
+    "enLabelKey": null,
+    "distantRevealEligible": false,
+    "arrivalCelebrationEligible": false
+  },
+  {
+    "daysUntil": 0,
+    "zhLabelKey": null,
+    "enLabelKey": null,
+    "distantRevealEligible": false,
+    "arrivalCelebrationEligible": true
+  }
+]

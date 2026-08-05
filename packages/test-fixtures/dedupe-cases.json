@@ -1,0 +1,34 @@
+[
+  {
+    "name": "same annual event matches",
+    "lhs": {
+      "title": "Alice Birthday",
+      "category": "birthday",
+      "dateCalendar": "gregorian",
+      "originalDate": "1998-06-30"
+    },
+    "rhs": {
+      "title": " alice birthday ",
+      "category": "birthday",
+      "dateCalendar": "gregorian",
+      "originalDate": "2026-06-30"
+    },
+    "expectedMatch": true
+  },
+  {
+    "name": "same title different day does not match",
+    "lhs": {
+      "title": "Alice Birthday",
+      "category": "birthday",
+      "dateCalendar": "gregorian",
+      "originalDate": "1998-06-30"
+    },
+    "rhs": {
+      "title": "Alice Birthday",
+      "category": "birthday",
+      "dateCalendar": "gregorian",
+      "originalDate": "1998-07-01"
+    },
+    "expectedMatch": false
+  }
+]

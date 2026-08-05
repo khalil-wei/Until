@@ -1,0 +1,14 @@
+/.gitattributes text eol=lf
+*.sh text eol=lf
+*.swift text eol=lf
+*.ets text eol=lf
+*.pbxproj text eol=lf
+*.xcscheme text eol=lf
+*.plist text eol=lf
+*.strings text eol=lf
+*.stringsdict text eol=lf
+*.json text eol=lf
+*.json5 text eol=lf
+*.md text eol=lf
+*.svg text eol=lf
+*.png binary

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "today",
+    "referenceDate": "2026-06-30",
+    "originalDate": "2000-06-30",
+    "dateCalendar": "gregorian",
+    "expectedNextOccurrence": "2026-06-30",
+    "expectedLabelKey": "countdown.today"
+  },
+  {
+    "name": "tomorrow",
+    "referenceDate": "2026-06-30",
+    "originalDate": "2000-07-01",
+    "dateCalendar": "gregorian",
+    "expectedNextOccurrence": "2026-07-01",
+    "expectedLabelKey": "countdown.tomorrow"
+  },
+  {
+    "name": "day after tomorrow",
+    "referenceDate": "2026-06-30",
+    "originalDate": "2000-07-02",
+    "dateCalendar": "gregorian",
+    "expectedNextOccurrence": "2026-07-02",
+    "expectedLabelKey": "countdown.day_after_tomorrow"
+  },
+  {
+    "name": "next year after annual date has passed",
+    "referenceDate": "2026-06-30",
+    "originalDate": "2000-06-01",
+    "dateCalendar": "gregorian",
+    "expectedNextOccurrence": "2027-06-01",
+    "expectedLabelKey": "countdown.days.after"
+  },
+  {
+    "name": "february 29 skips to next leap year",
+    "referenceDate": "2026-06-30",
+    "originalDate": "2000-02-29",
+    "dateCalendar": "gregorian",
+    "expectedNextOccurrence": "2028-02-29",
+    "expectedLabelKey": "countdown.days.after"
+  }
+]

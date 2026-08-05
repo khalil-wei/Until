@@ -1,0 +1,799 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		100000000000000000000001 /* CountdownEventsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000101 /* CountdownEventsApp.swift */; };
+		100000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000102 /* ContentView.swift */; };
+		100000000000000000000003 /* EventListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000103 /* EventListView.swift */; };
+		100000000000000000000004 /* EventRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000104 /* EventRowView.swift */; };
+		100000000000000000000005 /* AddEventView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000105 /* AddEventView.swift */; };
+		100000000000000000000006 /* EventListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000106 /* EventListViewModel.swift */; };
+		100000000000000000000007 /* CalendarService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000107 /* CalendarService.swift */; };
+		100000000000000000000008 /* CountdownEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000108 /* CountdownEvent.swift */; };
+		100000000000000000000009 /* SharedDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000109 /* SharedDataService.swift */; };
+		10000000000000000000000A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000201 /* Localizable.strings */; };
+		10000000000000000000000B /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000202 /* InfoPlist.strings */; };
+		10000000000000000000000C /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000203 /* Localizable.stringsdict */; };
+		10000000000000000000000D /* CountdownEventsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000110 /* CountdownEventsWidget.swift */; };
+		10000000000000000000000E /* CountdownWidgetProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000111 /* CountdownWidgetProvider.swift */; };
+		10000000000000000000000F /* CountdownWidgetEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000112 /* CountdownWidgetEntry.swift */; };
+		100000000000000000000010 /* CountdownWidgetEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000113 /* CountdownWidgetEntryView.swift */; };
+		100000000000000000000011 /* CountdownEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000108 /* CountdownEvent.swift */; };
+		100000000000000000000012 /* SharedDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000109 /* SharedDataService.swift */; };
+		100000000000000000000013 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000204 /* Localizable.strings */; };
+		100000000000000000000014 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000205 /* Localizable.stringsdict */; };
+		100000000000000000000015 /* CountdownEventsWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 100000000000000000000302 /* CountdownEventsWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		100000000000000000000016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000118 /* Assets.xcassets */; };
+		100000000000000000000017 /* LunarDateFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000119 /* LunarDateFormattingTests.swift */; };
+		100000000000000000000018 /* CountdownEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000108 /* CountdownEvent.swift */; };
+		100000000000000000000019 /* CountdownWidgetConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000011A /* CountdownWidgetConfiguration.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		100000000000000000000401 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 100000000000000000000500 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 100000000000000000000602;
+			remoteInfo = CountdownEventsWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		100000000000000000000701 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				100000000000000000000015 /* CountdownEventsWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		100000000000000000000101 /* CountdownEventsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownEventsApp.swift; sourceTree = "<group>"; };
+		100000000000000000000102 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		100000000000000000000103 /* EventListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventListView.swift; sourceTree = "<group>"; };
+		100000000000000000000104 /* EventRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventRowView.swift; sourceTree = "<group>"; };
+		100000000000000000000105 /* AddEventView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEventView.swift; sourceTree = "<group>"; };
+		100000000000000000000106 /* EventListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventListViewModel.swift; sourceTree = "<group>"; };
+		100000000000000000000107 /* CalendarService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarService.swift; sourceTree = "<group>"; };
+		100000000000000000000108 /* CountdownEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownEvent.swift; sourceTree = "<group>"; };
+		100000000000000000000109 /* SharedDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataService.swift; sourceTree = "<group>"; };
+		10000000000000000000010A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		10000000000000000000010B /* CountdownEvents.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CountdownEvents.entitlements; sourceTree = "<group>"; };
+		10000000000000000000010C /* CountdownEventsWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CountdownEventsWidget.entitlements; sourceTree = "<group>"; };
+		10000000000000000000010D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		100000000000000000000110 /* CountdownEventsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownEventsWidget.swift; sourceTree = "<group>"; };
+		100000000000000000000111 /* CountdownWidgetProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownWidgetProvider.swift; sourceTree = "<group>"; };
+		100000000000000000000112 /* CountdownWidgetEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownWidgetEntry.swift; sourceTree = "<group>"; };
+		100000000000000000000113 /* CountdownWidgetEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownWidgetEntryView.swift; sourceTree = "<group>"; };
+		100000000000000000000114 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ../../README.md; sourceTree = "<group>"; };
+		100000000000000000000115 /* PROJECT_GUIDELINES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ../../PROJECT_GUIDELINES.md; sourceTree = "<group>"; };
+		100000000000000000000116 /* PRODUCT_DOCUMENT.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ../../docs/product/PRODUCT_DOCUMENT.md; sourceTree = "<group>"; };
+		100000000000000000000117 /* IOS_XCODE_GUIDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ../../docs/development/IOS_XCODE_GUIDE.md; sourceTree = "<group>"; };
+		100000000000000000000118 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		100000000000000000000119 /* LunarDateFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LunarDateFormattingTests.swift; sourceTree = "<group>"; };
+		10000000000000000000011A /* CountdownWidgetConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownWidgetConfiguration.swift; sourceTree = "<group>"; };
+		100000000000000000000301 /* CountdownEvents.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CountdownEvents.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		100000000000000000000302 /* CountdownEventsWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CountdownEventsWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		100000000000000000000303 /* CountdownEventsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CountdownEventsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		100000000000000000000801 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		100000000000000000000802 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		100000000000000000000803 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		100000000000000000000804 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
+		100000000000000000000805 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
+		100000000000000000000806 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.stringsdict"; sourceTree = "<group>"; };
+		100000000000000000000807 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		100000000000000000000808 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		100000000000000000000809 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
+		10000000000000000000080A /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.stringsdict"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		100000000000000000000901 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		100000000000000000000902 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		100000000000000000000903 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		100000000000000000000A01 = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000A02 /* CountdownEvents */,
+				100000000000000000000A03 /* CountdownEventsWidget */,
+				100000000000000000000A04 /* Shared */,
+				100000000000000000000A10 /* CountdownEventsTests */,
+				100000000000000000000A05 /* docs */,
+				100000000000000000000114 /* README.md */,
+				100000000000000000000115 /* PROJECT_GUIDELINES.md */,
+				100000000000000000000A06 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		100000000000000000000A02 /* CountdownEvents */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000A07 /* App */,
+				100000000000000000000A08 /* Services */,
+				100000000000000000000A09 /* ViewModels */,
+				100000000000000000000A0A /* Views */,
+				100000000000000000000A0B /* Resources */,
+				10000000000000000000010B /* CountdownEvents.entitlements */,
+			);
+			path = CountdownEvents;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A03 /* CountdownEventsWidget */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000110 /* CountdownEventsWidget.swift */,
+				100000000000000000000111 /* CountdownWidgetProvider.swift */,
+				100000000000000000000112 /* CountdownWidgetEntry.swift */,
+				100000000000000000000113 /* CountdownWidgetEntryView.swift */,
+				10000000000000000000011A /* CountdownWidgetConfiguration.swift */,
+				100000000000000000000A0E /* Resources */,
+				10000000000000000000010C /* CountdownEventsWidget.entitlements */,
+			);
+			path = CountdownEventsWidget;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A04 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000A0C /* Models */,
+				100000000000000000000A0D /* Services */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A05 /* docs */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000116 /* PRODUCT_DOCUMENT.md */,
+				100000000000000000000117 /* IOS_XCODE_GUIDE.md */,
+			);
+			name = docs;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A06 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000301 /* CountdownEvents.app */,
+				100000000000000000000302 /* CountdownEventsWidget.appex */,
+				100000000000000000000303 /* CountdownEventsTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A07 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000101 /* CountdownEventsApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A08 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000107 /* CalendarService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A09 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000106 /* EventListViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A0A /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000102 /* ContentView.swift */,
+				100000000000000000000103 /* EventListView.swift */,
+				100000000000000000000104 /* EventRowView.swift */,
+				100000000000000000000105 /* AddEventView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A0B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000118 /* Assets.xcassets */,
+				10000000000000000000010A /* Info.plist */,
+				100000000000000000000201 /* Localizable.strings */,
+				100000000000000000000202 /* InfoPlist.strings */,
+				100000000000000000000203 /* Localizable.stringsdict */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A0C /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000108 /* CountdownEvent.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A0D /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000109 /* SharedDataService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A0E /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				10000000000000000000010D /* Info.plist */,
+				100000000000000000000204 /* Localizable.strings */,
+				100000000000000000000205 /* Localizable.stringsdict */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		100000000000000000000A10 /* CountdownEventsTests */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000119 /* LunarDateFormattingTests.swift */,
+			);
+			path = CountdownEventsTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		100000000000000000000601 /* CountdownEvents */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 100000000000000000000B01 /* Build configuration list for PBXNativeTarget "CountdownEvents" */;
+			buildPhases = (
+				100000000000000000000C01 /* Sources */,
+				100000000000000000000901 /* Frameworks */,
+				100000000000000000000D01 /* Resources */,
+				100000000000000000000701 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				100000000000000000000402 /* PBXTargetDependency */,
+			);
+			name = CountdownEvents;
+			productName = CountdownEvents;
+			productReference = 100000000000000000000301 /* CountdownEvents.app */;
+			productType = "com.apple.product-type.application";
+		};
+		100000000000000000000602 /* CountdownEventsWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 100000000000000000000B02 /* Build configuration list for PBXNativeTarget "CountdownEventsWidget" */;
+			buildPhases = (
+				100000000000000000000C02 /* Sources */,
+				100000000000000000000902 /* Frameworks */,
+				100000000000000000000D02 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CountdownEventsWidget;
+			productName = CountdownEventsWidget;
+			productReference = 100000000000000000000302 /* CountdownEventsWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		100000000000000000000603 /* CountdownEventsTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 100000000000000000000B03 /* Build configuration list for PBXNativeTarget "CountdownEventsTests" */;
+			buildPhases = (
+				100000000000000000000C03 /* Sources */,
+				100000000000000000000903 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CountdownEventsTests;
+			productName = CountdownEventsTests;
+			productReference = 100000000000000000000303 /* CountdownEventsTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		100000000000000000000500 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					100000000000000000000601 = {
+						CreatedOnToolsVersion = 16.0;
+						ProvisioningStyle = Automatic;
+					};
+					100000000000000000000602 = {
+						CreatedOnToolsVersion = 16.0;
+						ProvisioningStyle = Automatic;
+					};
+					100000000000000000000603 = {
+						CreatedOnToolsVersion = 16.0;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 100000000000000000000B00 /* Build configuration list for PBXProject "CountdownEvents" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				"zh-Hans",
+				Base,
+			);
+			mainGroup = 100000000000000000000A01;
+			productRefGroup = 100000000000000000000A06 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				100000000000000000000601 /* CountdownEvents */,
+				100000000000000000000602 /* CountdownEventsWidget */,
+				100000000000000000000603 /* CountdownEventsTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		100000000000000000000D01 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000016 /* Assets.xcassets in Resources */,
+				10000000000000000000000A /* Localizable.strings in Resources */,
+				10000000000000000000000B /* InfoPlist.strings in Resources */,
+				10000000000000000000000C /* Localizable.stringsdict in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		100000000000000000000D02 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000013 /* Localizable.strings in Resources */,
+				100000000000000000000014 /* Localizable.stringsdict in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		100000000000000000000C01 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000001 /* CountdownEventsApp.swift in Sources */,
+				100000000000000000000002 /* ContentView.swift in Sources */,
+				100000000000000000000003 /* EventListView.swift in Sources */,
+				100000000000000000000004 /* EventRowView.swift in Sources */,
+				100000000000000000000005 /* AddEventView.swift in Sources */,
+				100000000000000000000006 /* EventListViewModel.swift in Sources */,
+				100000000000000000000007 /* CalendarService.swift in Sources */,
+				100000000000000000000008 /* CountdownEvent.swift in Sources */,
+				100000000000000000000009 /* SharedDataService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		100000000000000000000C02 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				10000000000000000000000D /* CountdownEventsWidget.swift in Sources */,
+				10000000000000000000000E /* CountdownWidgetProvider.swift in Sources */,
+				10000000000000000000000F /* CountdownWidgetEntry.swift in Sources */,
+				100000000000000000000010 /* CountdownWidgetEntryView.swift in Sources */,
+				100000000000000000000019 /* CountdownWidgetConfiguration.swift in Sources */,
+				100000000000000000000011 /* CountdownEvent.swift in Sources */,
+				100000000000000000000012 /* SharedDataService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		100000000000000000000C03 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				100000000000000000000017 /* LunarDateFormattingTests.swift in Sources */,
+				100000000000000000000018 /* CountdownEvent.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		100000000000000000000402 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 100000000000000000000602 /* CountdownEventsWidget */;
+			targetProxy = 100000000000000000000401 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		100000000000000000000201 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				100000000000000000000801 /* en */,
+				100000000000000000000802 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		100000000000000000000202 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				100000000000000000000803 /* en */,
+				100000000000000000000804 /* zh-Hans */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		100000000000000000000203 /* Localizable.stringsdict */ = {
+			isa = PBXVariantGroup;
+			children = (
+				100000000000000000000805 /* en */,
+				100000000000000000000806 /* zh-Hans */,
+			);
+			name = Localizable.stringsdict;
+			sourceTree = "<group>";
+		};
+		100000000000000000000204 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				100000000000000000000807 /* en */,
+				100000000000000000000808 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		100000000000000000000205 /* Localizable.stringsdict */ = {
+			isa = PBXVariantGroup;
+			children = (
+				100000000000000000000809 /* en */,
+				10000000000000000000080A /* zh-Hans */,
+			);
+			name = Localizable.stringsdict;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		100000000000000000000E01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		100000000000000000000E02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES_AGGRESSIVE;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		100000000000000000000E03 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = CountdownEvents/CountdownEvents.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 8VCP7T5B98;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CountdownEvents/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.khalil.until;
+				PRODUCT_BUNDLE_PACKAGE_TYPE = APPL;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		100000000000000000000E04 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = CountdownEvents/CountdownEvents.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = 8VCP7T5B98;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CountdownEvents/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.khalil.until;
+				PRODUCT_BUNDLE_PACKAGE_TYPE = APPL;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		100000000000000000000E05 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = CountdownEventsWidget/CountdownEventsWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8VCP7T5B98;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CountdownEventsWidget/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.khalil.until.widget;
+				PRODUCT_BUNDLE_PACKAGE_TYPE = "XPC!";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		100000000000000000000E06 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = CountdownEventsWidget/CountdownEventsWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8VCP7T5B98;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CountdownEventsWidget/Resources/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.khalil.until.widget;
+				PRODUCT_BUNDLE_PACKAGE_TYPE = "XPC!";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		100000000000000000000E07 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8VCP7T5B98;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.khalil.until.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "";
+			};
+			name = Debug;
+		};
+		100000000000000000000E08 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8VCP7T5B98;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.khalil.until.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		100000000000000000000B00 /* Build configuration list for PBXProject "CountdownEvents" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				100000000000000000000E01 /* Debug */,
+				100000000000000000000E02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		100000000000000000000B01 /* Build configuration list for PBXNativeTarget "CountdownEvents" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				100000000000000000000E03 /* Debug */,
+				100000000000000000000E04 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		100000000000000000000B02 /* Build configuration list for PBXNativeTarget "CountdownEventsWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				100000000000000000000E05 /* Debug */,
+				100000000000000000000E06 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		100000000000000000000B03 /* Build configuration list for PBXNativeTarget "CountdownEventsTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				100000000000000000000E07 /* Debug */,
+				100000000000000000000E08 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 100000000000000000000500 /* Project object */;
+}

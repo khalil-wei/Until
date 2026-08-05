@@ -1,0 +1,48 @@
+{
+  "string": [
+    {
+      "name": "app_name",
+      "value": "\u5f85\u5230"
+    },
+    {
+      "name": "module_desc",
+      "value": "\u5f85\u5230\u9e3f\u8499\u7248"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "\u5f85\u5230"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "\u5f85\u5230"
+    },
+    {
+      "name": "CountdownCard_label",
+      "value": "\u5f85\u5230\u5361\u7247"
+    },
+    {
+      "name": "CountdownCardSmall_label",
+      "value": "\u5f85\u5230\u00b7\u5c0f"
+    },
+    {
+      "name": "CountdownCardMedium_label",
+      "value": "\u5f85\u5230\u00b7\u4e2d"
+    },
+    {
+      "name": "CountdownCardLarge_label",
+      "value": "\u5f85\u5230\u00b7\u5927"
+    },
+    {
+      "name": "CountdownCard_desc",
+      "value": "\u67e5\u770b\u6700\u8fd1\u7684\u91cd\u8981\u65e5\u5b50"
+    },
+    {
+      "name": "calendar_read_permission_reason",
+      "value": "\u7528\u4e8e\u8bbf\u95ee\u7531\u5f85\u5230\u540c\u6b65\u7684\u672c\u673a\u65e5\u5386\u65e5\u7a0b"
+    },
+    {
+      "name": "calendar_write_permission_reason",
+      "value": "\u7528\u4e8e\u5728\u7528\u6237\u786e\u8ba4\u540e\u521b\u5efa\u3001\u4fee\u6539\u6216\u5220\u9664\u7531\u5f85\u5230\u540c\u6b65\u7684\u65e5\u7a0b"
+    }
+  ]
+}

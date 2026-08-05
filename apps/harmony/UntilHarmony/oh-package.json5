@@ -1,0 +1,11 @@
+{
+  "modelVersion": "6.1.1",
+  "name": "until-harmony",
+  "version": "1.0.0",
+  "description": "HarmonyOS version of Until.",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {},
+  "devDependencies": {}
+}

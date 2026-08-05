@@ -1,0 +1,70 @@
+{
+  "forms": [
+    {
+      "name": "until_countdown_small",
+      "displayName": "$string:CountdownCardSmall_label",
+      "description": "$string:CountdownCard_desc",
+      "src": "./ets/widget/pages/CountdownCard.ets",
+      "uiSyntax": "arkts",
+      "window": {
+        "designWidth": 720,
+        "autoDesignWidth": true
+      },
+      "colorMode": "auto",
+      "isDynamic": true,
+      "isDefault": true,
+      "formConfigAbility": "ability://EntryAbility",
+      "updateEnabled": true,
+      "scheduledUpdateTime": "00:05",
+      "updateDuration": 0,
+      "defaultDimension": "2*2",
+      "supportDimensions": [
+        "2*2"
+      ]
+    },
+    {
+      "name": "until_countdown_medium",
+      "displayName": "$string:CountdownCardMedium_label",
+      "description": "$string:CountdownCard_desc",
+      "src": "./ets/widget/pages/CountdownCard.ets",
+      "uiSyntax": "arkts",
+      "window": {
+        "designWidth": 720,
+        "autoDesignWidth": true
+      },
+      "colorMode": "auto",
+      "isDynamic": true,
+      "isDefault": false,
+      "formConfigAbility": "ability://EntryAbility",
+      "updateEnabled": true,
+      "scheduledUpdateTime": "00:05",
+      "updateDuration": 0,
+      "defaultDimension": "2*4",
+      "supportDimensions": [
+        "2*4"
+      ]
+    },
+    {
+      "name": "until_countdown_large",
+      "displayName": "$string:CountdownCardLarge_label",
+      "description": "$string:CountdownCard_desc",
+      "src": "./ets/widget/pages/CountdownCard.ets",
+      "uiSyntax": "arkts",
+      "window": {
+        "designWidth": 720,
+        "autoDesignWidth": true
+      },
+      "colorMode": "auto",
+      "isDynamic": true,
+      "isDefault": false,
+      "formConfigAbility": "ability://EntryAbility",
+      "updateEnabled": true,
+      "scheduledUpdateTime": "00:05",
+      "updateDuration": 0,
+      "defaultDimension": "4*4",
+      "supportDimensions": [
+        "4*4"
+      ]
+    }
+  ]
+}

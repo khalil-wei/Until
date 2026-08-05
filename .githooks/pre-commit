@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# Versioned hook. Enable it once with: git config core.hooksPath .githooks
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/public_repo_guard.ps1
