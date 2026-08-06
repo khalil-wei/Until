@@ -6,6 +6,12 @@
 
 当前工程和 target 仍使用 `CountdownEvents` 命名，产品名使用 `待到 / Until`。
 
+## 鸿蒙体验版
+
+HarmonyOS 体验版已上架华为应用市场。使用鸿蒙手机的用户可以在华为应用市场搜索 **“待到”** 或 **“Until”**，下载安装体验。
+
+商店展示的版本号和更新内容以华为应用市场页面为准；功能状态与后续开发计划见[鸿蒙进度](apps/harmony/PROGRESS.md)。
+
 ## 当前状态与文档规则
 
 - 当前三端能力状态以[三端功能矩阵](packages/contract/feature-matrix.md)为唯一记录。
