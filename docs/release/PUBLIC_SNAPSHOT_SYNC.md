@@ -23,10 +23,22 @@ After reviewing the listed changes:
 
 The public repository receives a normal commit such as `sync: publish private snapshot 0e8b24e`. The private commit history, ignored signing files, keystore, and local properties are not copied.
 
+The private-only `publish-public.yml` workflow is intentionally excluded from public snapshots, so the public mirror does not try to publish itself without the private token.
+
 ## Release tags
 
 In snapshot mode, do not push a tag created in the private repository because that tag would expose the private commit ancestry. Create the tag on the public repository's sync commit when preparing a public Release, or use the public Release page's generated tag.
 
-## Remaining legal step
+## Automatic mode
 
-Add a project license before inviting outside contributors. The code and visual assets need an explicit license choice; MIT and Apache-2.0 are common options, but the repository owner must choose one.
+The private repository also contains `.github/workflows/publish-public.yml`. After it is enabled, every push to private `main` automatically publishes a safe snapshot to public `Until/main`; the workflow never pushes private Git history.
+
+Create a GitHub fine-grained personal access token with **Contents: Read and write** permission limited to the `wdlami/Until` repository. Add it in the private repository under **Settings → Secrets and variables → Actions** as:
+
+```text
+PUBLIC_REPO_TOKEN
+```
+
+The token is read only by the workflow and is not stored in the repository. You can also start a one-off publication from **Actions → Publish public snapshot → Run workflow**.
+
+The source code is licensed under MIT. Until/待到 names, icons, screenshots, and other brand assets are not included in that code license; third-party dependencies remain under their own licenses.

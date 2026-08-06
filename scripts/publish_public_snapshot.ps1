@@ -27,7 +27,10 @@ try {
     throw 'Working tree is not clean. Commit or stash changes before publishing.'
   }
 
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$repoRoot\scripts\public_repo_guard.ps1" -AllTracked
+  # Run the guard in the current PowerShell process so the publisher works on
+  # both GitHub's Ubuntu runners (PowerShell Core) and Windows development
+  # machines without relying on the Windows-only `powershell.exe` binary.
+  & (Join-Path $repoRoot 'scripts/public_repo_guard.ps1') -AllTracked
   $sourceSha = (git rev-parse $SourceBranch).Trim()
   New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
   git archive --format=tar --output="$archive" $SourceBranch
@@ -44,6 +47,16 @@ try {
   }
   tar -xf $archive -C $cloneRoot
 
+  # This workflow is private-repository-only. Do not copy it to the public
+  # mirror, where it would run without the private repository secret.
+  $privateOnlyFiles = @('.github/workflows/publish-public.yml')
+  foreach ($file in $privateOnlyFiles) {
+    $path = Join-Path $cloneRoot $file
+    if (Test-Path -LiteralPath $path -PathType Leaf) {
+      Remove-Item -LiteralPath $path -Force
+    }
+  }
+
   git -C $cloneRoot add -A
   $changes = @(git -C $cloneRoot status --short)
   Write-Host "Source snapshot: $sourceSha"
@@ -59,8 +72,19 @@ try {
     return
   }
 
+  # GitHub-hosted runners do not provide a Git identity by default. Configure
+  # one only in the temporary public clone so the sync commit is reproducible
+  # without changing the developer's global Git configuration.
+  git -C $cloneRoot config user.name 'CountdownCalendar Sync'
+  git -C $cloneRoot config user.email 'actions@users.noreply.github.com'
   git -C $cloneRoot commit -m "sync: publish private snapshot $($sourceSha.Substring(0, 7))"
+  if ($LASTEXITCODE -ne 0) {
+    throw "Unable to create the public sync commit (exit code $LASTEXITCODE)."
+  }
   git -C $cloneRoot push origin "HEAD:refs/heads/$PublicBranch"
+  if ($LASTEXITCODE -ne 0) {
+    throw "Unable to push the public sync commit (exit code $LASTEXITCODE)."
+  }
   Write-Host 'Public snapshot published without private Git history.'
 } finally {
   Pop-Location
