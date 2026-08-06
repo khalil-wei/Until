@@ -42,3 +42,10 @@ PUBLIC_REPO_TOKEN
 The token is read only by the workflow and is not stored in the repository. You can also start a one-off publication from **Actions → Publish public snapshot → Run workflow**.
 
 The source code is licensed under MIT. Until/待到 names, icons, screenshots, and other brand assets are not included in that code license; third-party dependencies remain under their own licenses.
+
+## Troubleshooting
+
+- `PUBLIC_REPO_TOKEN secret is not configured`: check the Secret name in the private repository; it must be exactly `PUBLIC_REPO_TOKEN`.
+- `403`, `authentication failed`, or a protected-branch rejection: grant the fine-grained token **Contents: Read and write** access to `wdlami/Until`, or adjust the public branch rule to allow the sync identity.
+- `Working tree is not clean`: commit or stash local changes before running the manual preview.
+- A successful workflow must create a `sync: publish private snapshot ...` commit in `Until/main`. Verify with `git fetch public main` and `git log -1 --oneline public/main`; do not rely only on the green workflow badge.

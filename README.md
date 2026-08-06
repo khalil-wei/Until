@@ -31,6 +31,8 @@ cd apps/android
 
 首次将仓库设为公开前，请先执行[公开仓库安全清单](docs/release/PUBLIC_REPOSITORY_SECURITY.md)中的扫描与 Git Hook 安装步骤。
 
+完整的私有仓库、公共镜像、自动同步、Release 和泄漏应急流程见[开源与公共发布总清单](docs/release/OPEN_SOURCE_OPERATIONS_CHECKLIST.md)。
+
 ### iOS
 
 在 macOS 安装 Xcode 后：

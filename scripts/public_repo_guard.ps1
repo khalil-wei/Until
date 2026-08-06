@@ -26,7 +26,7 @@ if (-not $files) {
   exit 0
 }
 
-$blockedPath = '(?i)(^|/)(local\.properties|signing\.properties|\.env(?:\..+)?|id_rsa(?:\.pub)?|.*\.(p12|p7b|jks|keystore|mobileprovision|cer|pem|key|apk|aab|ipa))$'
+$blockedPath = '(?i)(^|/)(local\.properties|signing\.properties|\.env(?:\..+)?|id_rsa(?:\.pub)?|.*\.(p8|p12|p7b|pfx|jks|keystore|mobileprovision|provisionprofile|cer|crt|der|pem|key|apk|aab|ipa))$'
 $privateKey = '-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----'
 $githubToken = '\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b'
 $credentialAssignment = '(?im)^\s*(?:storePassword|keyPassword|clientSecret|apiKey|accessToken|privateKey)\s*[:=]\s*["'']?(?!replace-|<|your-|example|todo|change_me|(?:[A-Za-z0-9_.]+\.)?getProperty\()[^"''\s]{8,}'

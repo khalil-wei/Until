@@ -26,6 +26,7 @@
 - iOS：[上架清单](release/ios/APP_STORE_CHECKLIST.md)、[内测计划](release/ios/TESTFLIGHT_PLAN.md)
 - Android：[发布清单](release/android/PLAY_RELEASE_CHECKLIST.md)
 - 开源与官网直装：[下载包发布流程](release/OPEN_SOURCE_DOWNLOAD.md)
+- 开源与公共发布：[总操作清单](release/OPEN_SOURCE_OPERATIONS_CHECKLIST.md)
 - 公开 GitHub 仓库：[安全清单](release/PUBLIC_REPOSITORY_SECURITY.md)
 - HarmonyOS：[应用市场与版本清单](release/harmony/APPGALLERY_CHECKLIST.md)、[商店文案](release/harmony/STORE_COPY.md)
 

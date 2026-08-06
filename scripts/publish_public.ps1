@@ -29,7 +29,9 @@ try {
     throw "Remote '$PublicRemote' was not found. Add it first: git remote add $PublicRemote https://github.com/wdlami/Until.git"
   }
 
-  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$repoRoot\scripts\public_repo_guard.ps1" -AllTracked
+  # Run the guard in the current PowerShell process so manual publishing also
+  # works on PowerShell Core/Linux without relying on Windows powershell.exe.
+  & (Join-Path $repoRoot 'scripts/public_repo_guard.ps1') -AllTracked
   git fetch $PublicRemote
 
   $sourceSha = (git rev-parse $SourceBranch).Trim()
@@ -55,9 +57,15 @@ try {
     git push $PublicRemote "${publicRef}:refs/heads/$backup"
     $lease = "refs/heads/$PublicBranch`:$publicSha"
     git push "--force-with-lease=$lease" $PublicRemote "${SourceBranch}:refs/heads/$PublicBranch"
+    if ($LASTEXITCODE -ne 0) {
+      throw "Unable to force-align the public branch (exit code $LASTEXITCODE)."
+    }
     Write-Host "Backed up public main to $backup and completed the first alignment."
   } else {
     git push $PublicRemote "${SourceBranch}:refs/heads/$PublicBranch"
+    if ($LASTEXITCODE -ne 0) {
+      throw "Unable to push the public branch (exit code $LASTEXITCODE)."
+    }
     Write-Host 'Public repository synced.'
   }
 } finally {
