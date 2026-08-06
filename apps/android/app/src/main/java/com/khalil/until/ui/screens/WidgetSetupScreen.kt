@@ -130,4 +130,3 @@ private fun widgetThemeName(theme: WidgetTheme) = stringResource(
         WidgetTheme.Midnight -> R.string.widget_theme_midnight
     },
 )
-}
