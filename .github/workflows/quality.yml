@@ -29,7 +29,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - uses: android-actions/setup-android@v4.0.1
+      - uses: android-actions/setup-android@v4.0.4
       - name: Run unit tests
         working-directory: apps/android
         run: bash ./gradlew testDebugUnitTest --no-daemon
