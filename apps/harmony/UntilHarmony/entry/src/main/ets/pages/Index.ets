@@ -1,3 +1,4 @@
+import { accessibility } from '@kit.AccessibilityKit';
 import { promptAction, router } from '@kit.ArkUI';
 import { CountdownEvent, EventCategory, EventSource, ReminderLeadTime } from '../model/CountdownEvent';
 import { AppEventStore } from '../repository/AppEventStore';
@@ -31,7 +32,6 @@ struct Index {
   @State private cardCount: number = 0;
   @State private listOffsetX: number = 0;
   @State private listOpacity: number = 1;
-  @State private isSwitchingFilter: boolean = false;
   @State private shouldShowNightLetter: boolean = false;
   private isPageVisible: boolean = false;
   @StorageLink('countdownEventsRevision') @Watch('handleEventsRevisionChanged')
@@ -54,7 +54,9 @@ struct Index {
         if (this.hasAnyStoredEvents) {
           this.searchBar()
           this.filterBar()
-          this.cardCenterEntry()
+          if (this.cardCount === 0) {
+            this.cardCenterEntry()
+          }
         }
         this.refreshStatus()
         Stack() {
@@ -110,7 +112,7 @@ struct Index {
     Row() {
       Column() {
         Text(L.text('app.title'))
-          .fontSize(34)
+          .fontSize(28)
           .fontWeight(FontWeight.Bold)
           .fontColor(AppTheme.primaryText)
       }
@@ -119,24 +121,37 @@ struct Index {
       Blank()
 
       if (this.hasAnyStoredEvents) {
-        Stack() {
-          Text('＋')
-            .fontSize(22)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#FFFFFF')
-            .textAlign(TextAlign.Center)
-            .width(38)
-            .height(38)
+        if (this.cardCount > 0) {
+          Button({ type: ButtonType.Normal }) {
+            Image($r('app.media.ui_cards'))
+              .width(21)
+              .height(21)
+              .fillColor(AppTheme.brand)
+          }
+          .width(44)
+          .height(44)
+          .borderRadius(22)
+          .backgroundColor(AppTheme.brandSoft)
+          .margin({ right: 10 })
+          .accessibilityText(`${L.text('card.center.home_title')}，${L.installedCardCount(this.cardCount)}`)
+          .onClick(() => {
+            router.pushUrl({ url: 'pages/CardCenterPage' });
+          })
         }
-        .width(38)
-        .height(38)
-        .borderRadius(19)
-        .backgroundColor(AppTheme.brand)
-        .alignContent(Alignment.Center)
-        .accessibilityText(L.text('event.add_day'))
-        .onClick(() => {
-          router.pushUrl({ url: 'pages/AddEventPage' });
-        })
+        Button({ type: ButtonType.Normal }) {
+            Image($r('app.media.ui_add'))
+              .fillColor(Color.White)
+              .width(22)
+              .height(22)
+          }
+          .width(44)
+          .height(44)
+          .borderRadius(22)
+          .backgroundColor(AppTheme.brand)
+          .accessibilityText(L.text('event.add_day'))
+          .onClick(() => {
+            router.pushUrl({ url: 'pages/AddEventPage' });
+          })
       }
     }
     .width('100%')
@@ -147,24 +162,25 @@ struct Index {
   @Builder
   private searchBar() {
     TextInput({ placeholder: L.text('search.events'), text: this.searchText })
-      .height(40)
-      .fontSize(15)
+      .height(44)
+      .fontSize(14)
       .fontColor(AppTheme.primaryText)
       .placeholderColor(AppTheme.tertiaryText)
       .placeholderFont({
         size: 15,
         weight: FontWeight.Regular,
       })
-      .backgroundColor(AppTheme.materialBackground)
-      .borderRadius(12)
-      .padding({ left: 14, right: 14 })
+      .backgroundColor(AppTheme.pageBackground)
+      .borderRadius(0)
+      .border({ width: { bottom: 1 }, color: AppTheme.separator })
+      .padding({ left: 2, right: 2 })
       .onChange((value: string) => {
         this.searchText = value;
         this.viewModel.setSearchQuery(value);
         this.applyVisibleEvents();
       })
       .accessibilityText(L.text('search.events'))
-      .margin({ bottom: 12 })
+      .margin({ bottom: 14 })
   }
 
   @Builder
@@ -176,21 +192,21 @@ struct Index {
       this.filterButton(L.categoryLabel(EventCategory.Custom), EventCategoryFilter.Custom)
     }
     .width('100%')
-    .padding(3)
-    .borderRadius(11)
-    .backgroundColor(AppTheme.materialBackground)
-    .margin({ bottom: 14 })
+    .padding({ top: 4, bottom: 4 })
+    .borderRadius(12)
+    .backgroundColor(Color.Transparent)
+    .margin({ bottom: 8 })
   }
 
   @Builder
   private cardCenterEntry() {
     Row({ space: 12 }) {
-      Text('🗓️')
-        .fontSize(22)
+      Image($r('app.media.ui_cards'))
+        .fillColor(AppTheme.brand)
+        .padding(10)
         .width(42)
         .height(42)
-        .textAlign(TextAlign.Center)
-      .borderRadius(21)
+      .borderRadius(14)
       .backgroundColor(AppTheme.brandSoft)
 
       Column({ space: 2 }) {
@@ -205,13 +221,12 @@ struct Index {
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
 
-      Text('›')
-        .fontSize(24)
-        .fontColor(AppTheme.tertiaryText)
+      Image($r('app.media.ui_chevron'))
+        .width(18).height(18).fillColor(AppTheme.tertiaryText)
     }
     .width('100%')
-    .height(64)
-    .padding({ left: 14, right: 14 })
+    .constraintSize({ minHeight: 64 })
+    .padding({ left: 14, right: 14, top: 10, bottom: 10 })
     .borderRadius(AppTheme.cardRadius)
     .backgroundColor(AppTheme.cardBackground)
     .margin({ bottom: 12 })
@@ -225,14 +240,15 @@ struct Index {
 
   @Builder
   private filterButton(title: string, filter: EventCategoryFilter) {
-    Button(title)
+    Button(title, { type: ButtonType.Normal })
       .fontSize(13)
       .fontWeight(this.selectedFilter === filter ? FontWeight.Bold : FontWeight.Medium)
-      .height(32)
+      .constraintSize({ minHeight: 44 })
       .layoutWeight(1)
-      .backgroundColor(this.selectedFilter === filter ? AppTheme.cardBackground : AppTheme.materialBackground)
-      .fontColor(this.selectedFilter === filter ? AppTheme.primaryText : AppTheme.secondaryText)
-      .borderRadius(9)
+      .backgroundColor(Color.Transparent)
+      .fontColor(this.selectedFilter === filter ? AppTheme.brand : AppTheme.secondaryText)
+      .borderRadius(0)
+      .border({ width: { bottom: this.selectedFilter === filter ? 2 : 0 }, color: AppTheme.brand })
       .onClick(() => {
         this.selectFilter(filter);
       })
@@ -244,8 +260,8 @@ struct Index {
     if (this.events.length === 0) {
       if (this.hasAnyStoredEvents) {
         Column({ space: 8 }) {
-          Text('🔎')
-            .fontSize(34)
+          Image($r('app.media.ui_search'))
+            .width(40).height(40).fillColor(AppTheme.secondaryText)
           Text(L.text('empty.no_matching.title'))
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
@@ -262,21 +278,28 @@ struct Index {
         this.emptyActivationView()
       }
     } else {
-      List({ space: 8 }) {
+      List({ space: 0 }) {
         if (this.shouldShowActivationCard) {
           ListItem() {
             this.activationTaskCard()
           }
         }
 
-        if (this.todayEvents.length > 0) {
+        ListItem() {
+          this.featuredEventCard(this.events[0])
+        }
+        .onClick(() => {
+          router.pushUrl({ url: 'pages/EventDetailPage', params: { eventID: this.events[0].id } });
+        })
+
+        if (this.todayEvents.filter((event: CountdownEvent) => event.id !== this.events[0].id).length > 0) {
           ListItem() {
             this.sectionHeader(L.text('today.section.title'), true)
           }
 
-          ForEach(this.todayEvents, (event: CountdownEvent) => {
+          ForEach(this.todayEvents.filter((event: CountdownEvent) => event.id !== this.events[0].id), (event: CountdownEvent) => {
             ListItem() {
-              EventRowView({ event: event })
+              EventRowView({ event: event, compact: true })
             }
             .onClick(() => {
               router.pushUrl({ url: 'pages/EventDetailPage', params: { eventID: event.id } });
@@ -295,14 +318,14 @@ struct Index {
           }, (event: CountdownEvent) => this.eventRowKey(event))
         }
 
-        if (this.upcomingEvents.length > 0) {
+        if (this.upcomingEvents.filter((event: CountdownEvent) => event.id !== this.events[0].id).length > 0) {
           ListItem() {
             this.sectionHeader(L.text('today.section.upcoming'), false)
           }
 
-          ForEach(this.upcomingEvents, (event: CountdownEvent) => {
+          ForEach(this.upcomingEvents.filter((event: CountdownEvent) => event.id !== this.events[0].id), (event: CountdownEvent) => {
             ListItem() {
-              EventRowView({ event: event })
+              EventRowView({ event: event, compact: true })
             }
             .onClick(() => {
               router.pushUrl({ url: 'pages/EventDetailPage', params: { eventID: event.id } });
@@ -345,6 +368,52 @@ struct Index {
   }
 
   @Builder
+  private featuredEventCard(event: CountdownEvent) {
+    Column({ space: 18 }) {
+      Row({ space: 7 }) {
+        Image(EventPresentation.categoryIcon(event.category))
+          .width(16).height(16).fillColor(EventPresentation.categoryColor(event.category))
+        Text(EventPresentation.categoryLabel(event.category))
+          .fontSize(12).fontWeight(FontWeight.Bold)
+          .fontColor(EventPresentation.categoryColor(event.category))
+        Blank()
+        Text(L.text('today.section.upcoming'))
+          .fontSize(12).fontColor(AppTheme.secondaryText)
+      }
+      .width('100%')
+
+      Row() {
+        Column({ space: 8 }) {
+          Text(event.title)
+            .fontSize(24).fontWeight(FontWeight.Bold).fontColor(AppTheme.primaryText)
+            .maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis })
+          Text(EventPresentation.compactDate(event.nextOccurrence, event.dateCalendar))
+            .fontSize(13).fontColor(AppTheme.secondaryText)
+        }
+        .alignItems(HorizontalAlign.Start).layoutWeight(1)
+        Column({ space: 0 }) {
+          Text(EventPresentation.countdownBadgeText(event))
+            .fontSize(46).fontWeight(FontWeight.Bold)
+            .fontColor(EventPresentation.categoryColor(event.category))
+          if (EventPresentation.shouldShowCountdownUnit(event)) {
+            Text(L.text('countdown.day.unit'))
+              .fontSize(12).fontColor(EventPresentation.categoryColor(event.category))
+          }
+        }
+        .alignItems(HorizontalAlign.End)
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .padding({ left: 20, right: 20, top: 18, bottom: 20 })
+    .margin({ bottom: 14 })
+    .borderRadius(22)
+    .backgroundColor(EventPresentation.categoryBackground(event.category))
+    .accessibilityGroup(true)
+    .accessibilityText(EventPresentation.accessibilityLabel(event))
+  }
+
+  @Builder
   private emptyActivationView() {
     Column({ space: 14 }) {
       Text(L.text('empty.activation.title'))
@@ -366,8 +435,8 @@ struct Index {
       .width('100%')
 
       Row({ space: 8 }) {
-        Text('📌')
-          .fontSize(18)
+        Image($r('app.media.ui_cards'))
+          .width(20).height(20).fillColor(AppTheme.brand)
         Text(L.text('empty.activation.card_hint'))
           .fontSize(12)
           .fontColor(AppTheme.secondaryText)
@@ -387,31 +456,30 @@ struct Index {
 
   @Builder
   private quickAddButton(title: string, category: EventCategory) {
-    Button() {
+    Button({ type: ButtonType.Normal }) {
       Row({ space: 12 }) {
-        Text(EventPresentation.categorySymbol(category))
-          .fontSize(24)
+        Image(EventPresentation.categoryIcon(category))
           .width(40)
           .height(40)
-          .textAlign(TextAlign.Center)
-          .borderRadius(20)
-          .backgroundColor(AppTheme.brandSoft)
+          .padding(9)
+          .fillColor(EventPresentation.categoryColor(category))
+          .borderRadius(12)
+          .backgroundColor(EventPresentation.categoryBackground(category))
         Text(title)
           .fontSize(16)
           .fontWeight(FontWeight.Medium)
           .fontColor(AppTheme.primaryText)
         Blank()
-        Text('›')
-          .fontSize(24)
-          .fontColor(AppTheme.tertiaryText)
+        Image($r('app.media.ui_chevron'))
+          .width(18).height(18).fillColor(AppTheme.tertiaryText)
       }
       .width('100%')
       .padding({ left: 16, right: 16 })
     }
     .width('100%')
-    .height(54)
+    .constraintSize({ minHeight: 64 })
     .borderRadius(16)
-    .backgroundColor(AppTheme.cardBackground)
+    .backgroundColor(AppTheme.materialBackground)
     .onClick(() => {
       router.pushUrl({ url: 'pages/AddEventPage', params: { category } });
     })
@@ -433,11 +501,12 @@ struct Index {
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)
 
-        Button('×')
-          .fontSize(20)
-          .fontColor(AppTheme.tertiaryText)
-          .width(34)
-          .height(34)
+        Button({ type: ButtonType.Normal }) {
+          Image($r('app.media.ui_close')).width(20).height(20).fillColor(AppTheme.secondaryText)
+        }
+          .accessibilityText(L.text('action.close'))
+          .width(AppTheme.minimumTouchSize)
+          .height(AppTheme.minimumTouchSize)
           .borderRadius(17)
           .backgroundColor(Color.Transparent)
           .onClick(() => {
@@ -448,8 +517,8 @@ struct Index {
 
       Button(L.text('activation.enable_any_reminder'))
         .width('100%')
-        .height(42)
-        .fontSize(13)
+        .constraintSize({ minHeight: AppTheme.minimumTouchSize })
+        .fontSize(14)
         .fontWeight(FontWeight.Bold)
         .fontColor(Color.White)
         .backgroundColor(AppTheme.brand)
@@ -461,7 +530,7 @@ struct Index {
     .width('100%')
     .padding(16)
     .borderRadius(18)
-    .backgroundColor(AppTheme.cardBackground)
+    .backgroundColor(AppTheme.brandSoft)
   }
 
   @Builder
@@ -480,7 +549,9 @@ struct Index {
 
       Blank()
 
-      Text(L.count(isToday ? this.todayEventCount : this.upcomingEventCount))
+      Text(L.count(isToday
+        ? this.todayEvents.filter((event: CountdownEvent) => event.id !== this.events[0].id).length
+        : this.upcomingEvents.filter((event: CountdownEvent) => event.id !== this.events[0].id).length))
         .fontSize(12)
         .fontColor(AppTheme.tertiaryText)
     }
@@ -544,6 +615,7 @@ struct Index {
       originalDate: event.originalDate,
       category: event.category,
       dateCalendar: event.dateCalendar,
+      recurrence: event.recurrence,
       source: event.source,
       isIgnored: event.isIgnored ?? false,
       calendarEventID: event.calendarEventID,
@@ -710,35 +782,27 @@ struct Index {
   }
 
   private selectFilter(filter: EventCategoryFilter): void {
-    if (this.selectedFilter === filter || this.isSwitchingFilter) {
+    if (this.selectedFilter === filter) {
       return;
     }
-
     const direction = this.filterSwitchDirection(filter);
-    this.isSwitchingFilter = true;
+    this.selectedFilter = filter;
+    this.viewModel.setCategoryFilter(filter);
+    this.applyVisibleEvents();
 
-    this.getUIContext().animateTo({ duration: 120, curve: Curve.EaseIn }, () => {
-      this.listOffsetX = -direction * 96;
-      this.listOpacity = 0.18;
-    });
-
-    setTimeout(() => {
-      this.selectedFilter = filter;
-      this.viewModel.setCategoryFilter(this.selectedFilter);
-      this.applyVisibleEvents();
-
-      this.listOffsetX = direction * 96;
-      this.listOpacity = 0.18;
-
-      this.getUIContext().animateTo({ duration: 220, curve: Curve.EaseOut }, () => {
+    let reduceMotion = true;
+    try {
+      reduceMotion = accessibility.isAnimationReduceEnabledSync();
+    } catch (_) {
+      // 无法读取系统偏好时使用无动效降级。
+    }
+    this.listOffsetX = reduceMotion ? 0 : direction * 16;
+    this.listOpacity = 1;
+    if (!reduceMotion) {
+      this.getUIContext().animateTo({ duration: 160, curve: Curve.EaseOut }, () => {
         this.listOffsetX = 0;
-        this.listOpacity = 1;
       });
-
-      setTimeout(() => {
-        this.isSwitchingFilter = false;
-      }, 230);
-    }, 120);
+    }
   }
 
   private filterSwitchDirection(nextFilter: EventCategoryFilter): number {

@@ -1,3 +1,5 @@
+import { AppPrimaryButton } from '../components/AppPrimaryButton';
+import { AppPageHeader } from '../components/AppPageHeader';
 import { promptAction, router } from '@kit.ArkUI';
 import { CalendarSyncCoordinator } from '../calendar/CalendarSyncCoordinator';
 import { EventFormView } from '../components/EventFormView';
@@ -93,13 +95,13 @@ struct AddEventPage {
       Blank()
 
       Column({ space: 14 }) {
-        Text('✅')
-          .fontSize(28)
-          .width(62)
-          .height(62)
-          .textAlign(TextAlign.Center)
-          .backgroundColor(AppTheme.brandSoft)
-          .borderRadius(31)
+        Image($r('app.media.ui_check'))
+          .fillColor(EventPresentation.categoryColor(this.formState.category))
+          .padding(13)
+          .width(48)
+          .height(48)
+          .backgroundColor(EventPresentation.categoryBackground(this.formState.category))
+          .borderRadius(24)
 
         Text(L.format('activation.saved_title', this.savedEventTitle))
           .fontSize(22)
@@ -117,19 +119,14 @@ struct AddEventPage {
           .fontColor(AppTheme.secondaryText)
           .textAlign(TextAlign.Center)
 
-        Button(L.text('activation.add_card'))
-          .width('100%')
-          .height(AppTheme.primaryActionHeight)
-          .fontSize(16)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
-          .backgroundColor(AppTheme.brand)
-          .borderRadius(AppTheme.primaryActionRadius)
-          .onClick(() => {
-            this.openCardManager();
-          })
+        AppPrimaryButton({
+          label: L.text('activation.add_card'),
+          accent: EventPresentation.categoryColor(this.formState.category),
+          onAction: () => { this.openCardManager(); },
+        })
 
-        Button(L.text('activation.later'))
+        Button(L.text('activation.later'), { type: ButtonType.Normal })
+          .constraintSize({ minHeight: AppTheme.minimumTouchSize })
           .fontSize(14)
           .fontColor(AppTheme.secondaryText)
           .backgroundColor(Color.Transparent)
@@ -149,54 +146,24 @@ struct AddEventPage {
 
   @Builder
   private navigationBar() {
-    Row({ space: 14 }) {
-        Button('‹')
-          .fontSize(30)
-          .fontColor(AppTheme.primaryText)
-          .width(42)
-          .height(42)
-          .borderRadius(21)
-          .backgroundColor(AppTheme.cardBackground)
-          .onClick(() => {
-            this.requestClose();
-          })
-          .accessibilityText(L.text('action.cancel'))
-
-        Column({ space: 2 }) {
-          Text(L.text('add.title'))
-            .fontSize(AppTheme.navigationTitleSize)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(AppTheme.primaryText)
-          Text(L.text('app.subtitle'))
-            .fontSize(12)
-            .fontColor(AppTheme.tertiaryText)
-        }
-        .alignItems(HorizontalAlign.Start)
-    }
-    .width('100%')
-    .height(AppTheme.navigationHeight)
-    .padding({ left: AppTheme.pagePadding, right: AppTheme.pagePadding })
+    AppPageHeader({
+      title: L.text('add.title'),
+      onBack: () => { this.requestClose(); },
+    })
   }
 
   @Builder
   private primarySaveButton() {
-    Row() {
-      Button(this.isSaving ? L.text('action.saving') : L.text('action.save'))
-          .fontSize(17)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
-          .layoutWeight(1)
-          .height(AppTheme.primaryActionHeight)
-          .borderRadius(AppTheme.primaryActionRadius)
-          .backgroundColor(this.isSaving ? AppTheme.disabledText : AppTheme.brand)
-          .enabled(!this.isSaving)
-          .onClick(() => {
-            this.save();
-          })
-          .accessibilityText(this.isSaving ? L.text('action.saving') : L.text('action.save'))
+    Column() {
+      AppPrimaryButton({
+        label: L.text('action.save'),
+        busy: this.isSaving,
+        accent: EventPresentation.categoryColor(this.formState.category),
+        onAction: () => { this.save(); },
+      })
     }
     .width('100%')
-    .padding({ left: AppTheme.pagePadding, right: AppTheme.pagePadding, bottom: 16, top: 10 })
+    .padding({ left: AppTheme.pagePadding, right: AppTheme.pagePadding, top: 10, bottom: 16 })
   }
 
   private async save(): Promise<void> {
@@ -333,7 +300,7 @@ struct AddEventPage {
   }
 
   private formSignature(state: EventFormState): string {
-    return `${state.title}|${state.category}|${state.dateCalendar}|${state.dateText}|${state.notes}|` +
+    return `${state.title}|${state.category}|${state.dateCalendar}|${state.recurrence}|${state.dateText}|${state.notes}|` +
       `${state.hasConfirmedDate}|${state.reminderLeadTime}|${state.shouldSyncToCalendar}`;
   }
 
@@ -371,6 +338,7 @@ struct AddEventPage {
       originalDate: event.originalDate,
       category: event.category,
       dateCalendar: event.dateCalendar,
+      recurrence: event.recurrence,
       source,
       isIgnored: event.isIgnored ?? false,
       calendarEventID,

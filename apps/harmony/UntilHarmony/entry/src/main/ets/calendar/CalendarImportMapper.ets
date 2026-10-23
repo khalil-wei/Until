@@ -3,6 +3,7 @@ import {
   CountdownEventFactory,
   EventCategory,
   EventDateCalendar,
+  EventRecurrence,
   EventSource,
 } from '../model/CountdownEvent';
 import { CountdownCalculator } from '../services/CountdownCalculator';
@@ -16,6 +17,7 @@ export interface RawCalendarEvent {
   startDate: Date;
   notes?: string;
   isLunar?: boolean;
+  recurrence?: EventRecurrence;
 }
 
 export class CalendarImportMapper {
@@ -28,9 +30,10 @@ export class CalendarImportMapper {
     const category = classification.category ?? EventCategory.Custom;
     const dateCalendar = rawEvent.isLunar === true ? EventDateCalendar.Lunar : classification.dateCalendar;
 
-    const nextOccurrence = CountdownCalculator.nextAnnualOccurrence(
+    const nextOccurrence = CountdownCalculator.nextOccurrence(
       rawEvent.startDate,
       dateCalendar,
+      rawEvent.recurrence,
     );
 
     return CountdownEventFactory.create({
@@ -39,6 +42,7 @@ export class CalendarImportMapper {
       nextOccurrence,
       category,
       dateCalendar,
+      recurrence: rawEvent.recurrence ?? EventRecurrence.Yearly,
       source: EventSource.ImportedCalendar,
       calendarEventID: rawEvent.id,
       calendarItemID: rawEvent.itemID,

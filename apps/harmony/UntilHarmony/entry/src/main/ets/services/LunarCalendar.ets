@@ -231,6 +231,8 @@ export class LunarCalendar {
   }
 
   private static daysBetween(start: Date, end: Date): number {
-    return Math.floor((end.getTime() - start.getTime()) / LunarCalendar.millisecondsPerDay);
+    const first = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+    const last = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+    return Math.round((last - first) / LunarCalendar.millisecondsPerDay);
   }
 }

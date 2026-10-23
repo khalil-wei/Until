@@ -2,6 +2,7 @@ import {
   CountdownEvent,
   EventCategory,
   EventDateCalendar,
+  EventRecurrence,
   EventSource,
   ReminderLeadTime,
 } from '../model/CountdownEvent';
@@ -13,6 +14,7 @@ interface CountdownEventRecord {
   originalDate: string;
   category: string;
   dateCalendar: string;
+  recurrence?: string;
   source: string;
   isIgnored?: boolean;
   calendarEventID?: string;
@@ -31,6 +33,7 @@ export class CountdownEventCodec {
         originalDate: event.originalDate.toISOString(),
         category: event.category,
         dateCalendar: event.dateCalendar,
+        recurrence: event.recurrence ?? EventRecurrence.Yearly,
         source: event.source,
         isIgnored: event.isIgnored ?? false,
         calendarEventID: event.calendarEventID,
@@ -57,6 +60,8 @@ export class CountdownEventCodec {
         originalDate: new Date(record.originalDate),
         category: record.category as EventCategory,
         dateCalendar: record.dateCalendar as EventDateCalendar,
+        recurrence: record.recurrence === EventRecurrence.Monthly ? EventRecurrence.Monthly :
+          record.recurrence === EventRecurrence.Weekly ? EventRecurrence.Weekly : EventRecurrence.Yearly,
         source: record.source as EventSource,
         isIgnored: record.isIgnored ?? false,
         calendarEventID: record.calendarEventID,

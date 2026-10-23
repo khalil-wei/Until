@@ -1,26 +1,108 @@
 {
   "color": [
-    { "name": "start_window_background", "value": "#101513" },
-    { "name": "page_background", "value": "#101513" },
-    { "name": "material_background", "value": "#202B27" },
-    { "name": "card_background", "value": "#1A211E" },
-    { "name": "elevated_background", "value": "#202B27" },
-    { "name": "primary_text", "value": "#F1F5F3" },
-    { "name": "secondary_text", "value": "#AAB7B2" },
-    { "name": "tertiary_text", "value": "#93A19C" },
-    { "name": "separator", "value": "#2C3934" },
-    { "name": "brand", "value": "#0A9B86" },
-    { "name": "brand_dark", "value": "#087766" },
-    { "name": "brand_soft", "value": "#183C35" },
-    { "name": "warning", "value": "#F0B47B" },
-    { "name": "warning_soft", "value": "#4D341E" },
-    { "name": "danger", "value": "#FF8796" },
-    { "name": "danger_soft", "value": "#52252F" },
-    { "name": "upcoming", "value": "#AFC5FF" },
-    { "name": "upcoming_soft", "value": "#273552" },
-    { "name": "distant", "value": "#75D9BE" },
-    { "name": "distant_soft", "value": "#1A4036" },
-    { "name": "disabled_background", "value": "#29322F" },
-    { "name": "disabled_text", "value": "#63716C" }
+    {
+      "name": "start_window_background",
+      "value": "#101114"
+    },
+    {
+      "name": "page_background",
+      "value": "#101114"
+    },
+    {
+      "name": "material_background",
+      "value": "#1D1F24"
+    },
+    {
+      "name": "card_background",
+      "value": "#17191D"
+    },
+    {
+      "name": "elevated_background",
+      "value": "#1D1F24"
+    },
+    {
+      "name": "primary_text",
+      "value": "#F3F4F6"
+    },
+    {
+      "name": "secondary_text",
+      "value": "#AAAFBA"
+    },
+    {
+      "name": "tertiary_text",
+      "value": "#969CA8"
+    },
+    {
+      "name": "separator",
+      "value": "#292C33"
+    },
+    {
+      "name": "brand",
+      "value": "#238A7F"
+    },
+    {
+      "name": "brand_dark",
+      "value": "#176A61"
+    },
+    {
+      "name": "brand_soft",
+      "value": "#163C37"
+    },
+    {
+      "name": "warning",
+      "value": "#F2B678"
+    },
+    {
+      "name": "warning_soft",
+      "value": "#422E21"
+    },
+    {
+      "name": "danger",
+      "value": "#F396B4"
+    },
+    {
+      "name": "danger_soft",
+      "value": "#442535"
+    },
+    {
+      "name": "upcoming",
+      "value": "#B8AEF1"
+    },
+    {
+      "name": "upcoming_soft",
+      "value": "#2F2948"
+    },
+    {
+      "name": "distant",
+      "value": "#8CD0B5"
+    },
+    {
+      "name": "distant_soft",
+      "value": "#203D32"
+    },
+    {
+      "name": "disabled_background",
+      "value": "#29322F"
+    },
+    {
+      "name": "disabled_text",
+      "value": "#63716C"
+    },
+    {
+      "name": "hero_background",
+      "value": "#101114"
+    },
+    {
+      "name": "hero_text",
+      "value": "#F3F4F6"
+    },
+    {
+      "name": "hero_secondary",
+      "value": "#AAAFBA"
+    },
+    {
+      "name": "hero_accent",
+      "value": "#F3F4F6"
+    }
   ]
 }

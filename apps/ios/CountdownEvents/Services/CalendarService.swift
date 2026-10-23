@@ -37,6 +37,7 @@ final class CalendarService: ObservableObject {
             var closestEventsByKey: [String: CountdownEvent] = [:]
 
             for event in ekEvents {
+                guard let recurrence = Self.detectRecurrence(for: event) else { continue }
                 let happensToday = Self.event(event, intersectsStart: start, end: tomorrow)
                 guard let category = Self.detectCategory(for: event) ?? (happensToday ? .custom : nil) else {
                     continue
@@ -44,12 +45,22 @@ final class CalendarService: ObservableObject {
 
                 let key = Self.deduplicationKey(for: event, category: category)
                 let nextDate = happensToday ? start : Calendar.current.startOfDay(for: event.startDate)
+                let dateCalendar = Self.detectDateCalendar(for: event)
+                let metadataDate = Self.metadataValue("originalDate", for: event).flatMap(Double.init)
+                    .flatMap { $0.isFinite ? Date(timeIntervalSince1970: $0) : nil }
+                let originalDate = CalendarImportRules.validatedAnchor(
+                    metadataDate: metadataDate,
+                    metadataRecurrence: Self.metadataValue("recurrence", for: event).flatMap(EventRecurrence.init(rawValue:)),
+                    sourceOccurrence: event.startDate, dateCalendar: dateCalendar,
+                    recurrence: recurrence, referenceDate: start, calendar: calendar
+                )
                 let ce = CountdownEvent(
                     title: event.title ?? String(localized: "event.unnamed"),
                     nextOccurrence: nextDate,
-                    originalDate: event.startDate,
+                    originalDate: originalDate,
                     category: category,
-                    dateCalendar: Self.detectDateCalendar(for: event),
+                    dateCalendar: dateCalendar,
+                    recurrence: recurrence,
                     source: Self.detectSource(for: event),
                     calendarEventID: event.eventIdentifier,
                     calendarItemID: event.calendarItemIdentifier,
@@ -68,9 +79,9 @@ final class CalendarService: ObservableObject {
     // MARK: - Create
 
     /// Creates a recurring yearly EKEvent and returns the new event identifier.
-    func createEvent(title: String, date: Date, category: EventCategory, notes: String?) async throws -> String {
+    func createEvent(title: String, date: Date, recurrence: EventRecurrence = .yearly, category: EventCategory, notes: String?) async throws -> String {
         let event = EKEvent(eventStore: store)
-        configure(event, title: title, date: date, category: category, notes: notes)
+        configure(event, title: title, date: date, recurrence: recurrence, category: category, notes: notes)
         event.calendar = countdownCalendar()
 
         try store.save(event, span: .thisEvent, commit: true)
@@ -83,14 +94,15 @@ final class CalendarService: ObservableObject {
         identifier: String,
         title: String,
         date: Date,
+        recurrence: EventRecurrence = .yearly,
         category: EventCategory,
         notes: String?
     ) async throws -> String {
         guard let event = store.event(withIdentifier: identifier) else {
-            return try await createEvent(title: title, date: date, category: category, notes: notes)
+            return try await createEvent(title: title, date: date, recurrence: recurrence, category: category, notes: notes)
         }
 
-        configure(event, title: title, date: date, category: category, notes: notes)
+        configure(event, title: title, date: date, recurrence: recurrence, category: category, notes: notes)
         try store.save(event, span: .futureEvents, commit: true)
         return event.eventIdentifier
     }
@@ -192,9 +204,45 @@ final class CalendarService: ObservableObject {
 
     nonisolated private static func metadataURL(
         category: EventCategory,
-        dateCalendar: EventDateCalendar
+        dateCalendar: EventDateCalendar,
+        recurrence: EventRecurrence,
+        originalDate: Date
     ) -> URL? {
-        URL(string: "until://countdown-event?category=\(category.rawValue)&dateCalendar=\(dateCalendar.rawValue)")
+        URL(string: "until://countdown-event?category=\(category.rawValue)&dateCalendar=\(dateCalendar.rawValue)&recurrence=\(recurrence.rawValue)&originalDate=\(originalDate.timeIntervalSince1970)")
+    }
+
+    /// Only import schedules the local model can reproduce without losing rules.
+    nonisolated private static func detectRecurrence(for event: EKEvent) -> EventRecurrence? {
+        let rules = event.recurrenceRules ?? []
+        // Keep the existing annual interpretation of non-recurring imports.
+        if rules.isEmpty { return .yearly }
+        guard rules.count == 1, let rule = rules.first,
+              !event.isDetached, rule.interval == 1, rule.recurrenceEnd == nil,
+              (rule.daysOfTheYear ?? []).isEmpty,
+              (rule.weeksOfTheYear ?? []).isEmpty,
+              (rule.setPositions ?? []).isEmpty else { return nil }
+        let calendar = detectDateCalendar(for: event).foundationCalendar
+        let day = calendar.component(.day, from: event.startDate)
+        let month = calendar.component(.month, from: event.startDate)
+        let monthDays = rule.daysOfTheMonth ?? []
+        let months = rule.monthsOfTheYear ?? []
+        let weekDays = rule.daysOfTheWeek ?? []
+        if !monthDays.isEmpty && (monthDays.count != 1 || monthDays.first?.intValue != day) { return nil }
+        if !months.isEmpty && (months.count != 1 || months.first?.intValue != month) { return nil }
+        switch rule.frequency {
+        case .yearly:
+            return weekDays.isEmpty ? .yearly : nil
+        case .monthly:
+            return weekDays.isEmpty && months.isEmpty ? .monthly : nil
+        case .weekly:
+            guard monthDays.isEmpty, months.isEmpty else { return nil }
+            if let weekday = weekDays.first {
+                guard weekDays.count == 1, weekday.weekNumber == 0,
+                      weekday.dayOfTheWeek.rawValue == Calendar.current.component(.weekday, from: event.startDate) else { return nil }
+            }
+            return .weekly
+        default: return nil
+        }
     }
 
     nonisolated private static func metadataValue(_ name: String, for event: EKEvent) -> String? {
@@ -224,20 +272,21 @@ final class CalendarService: ObservableObject {
         CountdownEvent.nextAnnualOccurrence(from: date, dateCalendar: dateCalendar)
     }
 
-    private func configure(_ event: EKEvent, title: String, date: Date, category: EventCategory, notes: String?) {
+    private func configure(_ event: EKEvent, title: String, date: Date, recurrence: EventRecurrence, category: EventCategory, notes: String?) {
         let day = Calendar.current.startOfDay(for: date)
         event.title = title
         event.notes = notes
-        event.url = Self.metadataURL(category: category, dateCalendar: .gregorian)
+        event.url = Self.metadataURL(category: category, dateCalendar: .gregorian, recurrence: recurrence, originalDate: day)
         event.isAllDay = true
         event.startDate = day
         event.endDate = Calendar.current.date(byAdding: .day, value: 1, to: day) ?? day
 
-        let yearlyRule = EKRecurrenceRule(
-            recurrenceWith: .yearly,
+        let frequency: EKRecurrenceFrequency = recurrence == .weekly ? .weekly : recurrence == .monthly ? .monthly : .yearly
+        let rule = EKRecurrenceRule(
+            recurrenceWith: frequency,
             interval: 1,
             end: nil
         )
-        event.recurrenceRules = [yearlyRule]
+        event.recurrenceRules = [rule]
     }
 }

@@ -39,6 +39,7 @@ export default class EntryAbility extends UIAbility {
   }
 
   onForeground(): void {
+    AppStorage.setOrCreate('appForegroundRevision', (AppStorage.get<number>('appForegroundRevision') ?? 0) + 1);
     RetentionCoordinator.reconcile();
   }
 

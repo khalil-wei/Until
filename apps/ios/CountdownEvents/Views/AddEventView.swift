@@ -11,6 +11,7 @@ struct AddEventView: View {
     @State private var date = Date()
     @State private var category: EventCategory = .birthday
     @State private var dateCalendar: EventDateCalendar = .gregorian
+    @State private var recurrence: EventRecurrence = .yearly
     @State private var notes = ""
     @State private var reminderLeadTime: ReminderLeadTime = .none
     @State private var isSaving = false
@@ -32,6 +33,7 @@ struct AddEventView: View {
         _date = State(initialValue: event?.originalDate ?? Date())
         _category = State(initialValue: initialCategory)
         _dateCalendar = State(initialValue: initialCategory.supportsDateCalendar ? event?.dateCalendar ?? .gregorian : .gregorian)
+        _recurrence = State(initialValue: event?.recurrence ?? .yearly)
         _notes = State(initialValue: event?.notes ?? "")
         _reminderLeadTime = State(initialValue: event?.reminderLeadTime ?? .none)
         _syncToCalendar = State(initialValue: event?.source == .importedCalendar ? false : event?.calendarEventID != nil || event == nil)
@@ -77,6 +79,17 @@ struct AddEventView: View {
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
+                }
+
+                Section {
+                    Picker(String(localized: "recurrence.title"), selection: $recurrence) {
+                        ForEach(EventRecurrence.allCases, id: \.self) { rule in
+                            Text(rule.displayName).tag(rule)
+                        }
+                    }
+                } footer: {
+                    Text(String(localized: "recurrence.footer"))
+                        .font(.footnote)
                 }
 
                 Section(String(localized: "add.section.notes")) {
@@ -167,6 +180,7 @@ struct AddEventView: View {
                     date: date,
                     category: category,
                     dateCalendar: dateCalendar,
+                    recurrence: recurrence,
                     syncToCalendar: syncToCalendar,
                     notes: notesOrNil,
                     reminderLeadTime: reminderLeadTime
@@ -177,6 +191,7 @@ struct AddEventView: View {
                     date: date,
                     category: category,
                     dateCalendar: dateCalendar,
+                    recurrence: recurrence,
                     notes: notesOrNil,
                     reminderLeadTime: reminderLeadTime
                 )
@@ -186,6 +201,7 @@ struct AddEventView: View {
                     date: date,
                     category: category,
                     dateCalendar: dateCalendar,
+                    recurrence: recurrence,
                     notes: notesOrNil,
                     reminderLeadTime: reminderLeadTime
                 )

@@ -1,3 +1,7 @@
+import { CardPalette } from '../card/CardPalette';
+import { CardTimelineProvider } from '../card/CardTimelineProvider';
+import { AppPrimaryButton } from '../components/AppPrimaryButton';
+import { AppPageHeader } from '../components/AppPageHeader';
 import { promptAction, router } from '@kit.ArkUI';
 import {
   COUNTDOWN_CARD_CONFIGURATION_VERSION,
@@ -46,11 +50,14 @@ struct CardCenterPage {
       this.navigationBar()
 
       Scroll() {
-        Column({ space: 16 }) {
+        Column({ space: 26 }) {
           if (this.cards.length === 0) {
             this.emptyCardState()
           } else {
             this.installedCardsSection()
+            if (this.events.length > 0) {
+              this.cardPreview()
+            }
             if (this.events.length > 1) {
               this.contentSection()
             }
@@ -61,6 +68,7 @@ struct CardCenterPage {
         .padding({ left: AppTheme.pagePadding, right: AppTheme.pagePadding, bottom: 24 })
       }
       .layoutWeight(1)
+      .align(Alignment.TopStart)
       .scrollBar(BarState.Off)
 
       this.actionArea()
@@ -72,45 +80,21 @@ struct CardCenterPage {
 
   @Builder
   private navigationBar() {
-    Row({ space: 12 }) {
-      Button('‹')
-        .fontSize(30)
-        .fontColor(AppTheme.primaryText)
-        .width(42)
-        .height(42)
-        .borderRadius(21)
-        .backgroundColor(AppTheme.cardBackground)
-        .onClick(() => {
-          router.back();
-        })
-        .accessibilityText(L.text('action.done'))
-
-      Column({ space: 2 }) {
-        Text(L.text('card.center.title'))
-          .fontSize(AppTheme.navigationTitleSize)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(AppTheme.primaryText)
-        Text(L.text('card.center.subtitle'))
-          .fontSize(12)
-          .fontColor(AppTheme.secondaryText)
-      }
-      .alignItems(HorizontalAlign.Start)
-      .layoutWeight(1)
-    }
-    .width('100%')
-    .height(AppTheme.navigationHeight)
-    .padding({ left: AppTheme.pagePadding, right: AppTheme.pagePadding })
+    AppPageHeader({
+      title: L.text('card.center.title'),
+      onBack: () => { router.back(); },
+    })
   }
 
   @Builder
   private emptyCardState() {
     Column({ space: 14 }) {
-      Text('🗓️')
-        .fontSize(32)
-        .textAlign(TextAlign.Center)
-      .width(64)
-      .height(64)
-      .borderRadius(20)
+      Image($r('app.media.ui_cards'))
+        .fillColor(AppTheme.brand)
+        .padding(12)
+      .width(48)
+      .height(48)
+      .borderRadius(14)
       .backgroundColor(AppTheme.brandSoft)
 
       Text(L.text('card.center.empty_title'))
@@ -128,53 +112,72 @@ struct CardCenterPage {
         .maxLines(3)
 
       Row({ space: 8 }) {
-        Text('1')
-          .fontSize(12)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
-          .width(24)
-          .height(24)
-          .textAlign(TextAlign.Center)
-          .borderRadius(12)
-          .backgroundColor(AppTheme.brand)
+        Image($r('app.media.ui_check'))
+          .width(18).height(18).fillColor(AppTheme.brand)
         Text(L.text('card.center.empty_step'))
           .fontSize(12)
           .fontColor(AppTheme.secondaryText)
           .layoutWeight(1)
       }
       .width('100%')
-      .padding(14)
+      .padding({ left: 12, right: 12, top: 12, bottom: 12 })
       .borderRadius(AppTheme.controlRadius)
-      .backgroundColor(AppTheme.cardBackground)
+      .backgroundColor(AppTheme.materialBackground)
     }
     .width('100%')
-    .padding({ left: 4, right: 4, top: 54 })
+    .padding({ left: 4, right: 4, top: 48 })
     .alignItems(HorizontalAlign.Center)
   }
 
   @Builder
   private installedCardsSection() {
-    Column({ space: 10 }) {
-      this.sectionTitle(`${L.text('card.center.installed')} · ${this.cards.length}`)
+    Column({ space: 12 }) {
+      Row() {
+        Text(L.text('card.center.installed'))
+          .fontSize(AppTheme.sectionTitleSize)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(AppTheme.primaryText)
+        Blank()
+        Text(`${this.cards.length}`)
+          .fontSize(13).fontWeight(FontWeight.Medium)
+          .fontColor(AppTheme.secondaryText)
+      }
+      .width('100%')
 
       Scroll() {
         Row({ space: 8 }) {
           ForEach(this.cards, (card: CountdownCardInstance) => {
-            Button() {
-              Column({ space: 2 }) {
+            Button({ type: ButtonType.Normal }) {
+              Column({ space: 5 }) {
+                Stack() {
+                  Row()
+                    .width(this.cardShapeWidth(card.size))
+                    .height(this.cardShapeHeight(card.size))
+                    .backgroundColor(CardPalette.background(card.theme))
+                    .border({ width: 1, color: this.themeActionColor(card.theme) })
+                    .borderRadius(5)
+                  Image($r('app.media.category_anniversary'))
+                    .width(11).height(11)
+                    .fillColor(this.themeActionColor(card.theme))
+                }
+                .width(46).height(28)
+                .alignContent(Alignment.Center)
                 Text(this.sizeLabel(card.size))
                   .fontSize(13)
                   .fontWeight(FontWeight.Bold)
-                  .fontColor(card.id === this.selectedFormID ? Color.White : AppTheme.primaryText)
+                  .fontColor(AppTheme.primaryText)
                 Text(this.shortFormID(card.id))
                   .fontSize(10)
-                  .fontColor(card.id === this.selectedFormID ? '#DDF8F2' : AppTheme.tertiaryText)
+                  .fontColor(AppTheme.secondaryText)
               }
+              .alignItems(HorizontalAlign.Center)
             }
-            .height(52)
-            .padding({ left: 16, right: 16 })
-            .borderRadius(15)
-            .backgroundColor(card.id === this.selectedFormID ? AppTheme.brand : AppTheme.cardBackground)
+            .width(98).height(100)
+            .border({ width: { bottom: card.id === this.selectedFormID ? 3 : 0 },
+              color: this.themeActionColor(card.theme) })
+            .borderRadius(12)
+            .backgroundColor(card.id === this.selectedFormID
+              ? this.themeSelectionBackground(card.theme) : AppTheme.materialBackground)
             .onClick(() => {
               this.selectCard(card);
             })
@@ -190,30 +193,75 @@ struct CardCenterPage {
   }
 
   @Builder
-  private contentSection() {
-    Column({ space: 10 }) {
-      this.sectionTitle(L.text('card.center.content'))
-
-      Column({ space: 10 }) {
+  private cardPreview() {
+    Column({ space: 12 }) {
+      this.sectionTitle(L.text('card.center.preview'))
+      Column({ space: 18 }) {
         Row({ space: 8 }) {
-          this.contentModeButton(L.text('card.center.automatic'), CountdownCardContentMode.Automatic)
-          this.contentModeButton(L.text('card.center.fixed'), CountdownCardContentMode.Featured)
+          Image(EventPresentation.categoryIcon(this.previewEvent().category))
+            .width(17).height(17)
+            .fillColor(EventPresentation.categoryColor(this.previewEvent().category))
+          Text(EventPresentation.categoryLabel(this.previewEvent().category))
+            .fontSize(12).fontWeight(FontWeight.Bold)
+            .fontColor(EventPresentation.categoryColor(this.previewEvent().category))
+          Blank()
+          Text(this.sizeLabel(this.previewSize()))
+            .fontSize(12).fontColor(AppTheme.secondaryText)
         }
         .width('100%')
+        Row() {
+          Text(this.previewEvent().title)
+            .fontSize(20).fontWeight(FontWeight.Bold)
+            .fontColor(AppTheme.primaryText)
+            .maxLines(2).layoutWeight(1)
+          Text(EventPresentation.countdownBadgeText(this.previewEvent()))
+            .fontSize(42).fontWeight(FontWeight.Bold)
+            .fontColor(EventPresentation.categoryColor(this.previewEvent().category))
+        }
+        .width('100%')
+        Text(EventPresentation.compactDate(this.previewEvent().nextOccurrence, this.previewEvent().dateCalendar))
+          .fontSize(12).fontColor(AppTheme.secondaryText)
+          .width('100%')
+      }
+      .width('100%')
+      .padding(18)
+      .borderRadius(20)
+      .backgroundColor(CardPalette.background(this.theme))
+    }
+    .width('100%')
+  }
+
+  @Builder
+  private contentSection() {
+    Column({ space: 12 }) {
+      this.sectionTitle(L.text('card.center.content'))
+
+      Column({ space: 8 }) {
+        this.contentModeButton(
+          L.text('card.center.automatic'), L.text('card.center.automatic_detail'),
+          $r('app.media.ui_calendar'), CountdownCardContentMode.Automatic)
+        this.contentModeButton(
+          L.text('card.center.fixed'), L.text('card.center.fixed_detail'),
+          $r('app.media.ui_cards'), CountdownCardContentMode.Featured)
 
         if (this.contentMode === CountdownCardContentMode.Featured) {
           Text(L.text('card.center.fixed_helper'))
             .width('100%')
-            .fontSize(11)
+            .fontSize(12)
             .fontColor(AppTheme.secondaryText)
+            .padding({ left: 4, top: 6, bottom: 2 })
 
           Column({ space: 1 }) {
             ForEach(this.events, (event: CountdownEvent) => {
-              Button() {
+              Button({ type: ButtonType.Normal }) {
                 Row({ space: 10 }) {
-                  Text(EventPresentation.categorySymbol(event.category))
-                    .fontSize(17)
-                    .width(26)
+                  Image(EventPresentation.categoryIcon(event.category))
+                    .width(32)
+                    .height(32)
+                    .padding(7)
+                    .fillColor(EventPresentation.categoryColor(event.category))
+                    .borderRadius(10)
+                    .backgroundColor(EventPresentation.categoryBackground(event.category))
                   Column({ space: 2 }) {
                     Text(event.title)
                       .fontSize(14)
@@ -221,53 +269,73 @@ struct CardCenterPage {
                       .fontColor(AppTheme.primaryText)
                       .maxLines(1)
                       .textOverflow({ overflow: TextOverflow.Ellipsis })
-                    Text(EventPresentation.displayDate(event.nextOccurrence, event.dateCalendar))
-                      .fontSize(11)
+                    Text(EventPresentation.compactDate(event.nextOccurrence, event.dateCalendar))
+                      .fontSize(12)
                       .fontColor(AppTheme.secondaryText)
                       .maxLines(1)
                       .textOverflow({ overflow: TextOverflow.Ellipsis })
                   }
                   .alignItems(HorizontalAlign.Start)
                   .layoutWeight(1)
-                  Text(event.id === this.featuredEventID ? '✓' : '')
-                    .fontSize(17)
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor(AppTheme.brand)
-                    .width(24)
+                  Image($r('app.media.ui_check'))
+                    .width(20).height(20)
+                    .fillColor(EventPresentation.categoryColor(event.category))
+                    .opacity(event.id === this.featuredEventID ? 1 : 0)
                 }
                 .width('100%')
               }
               .width('100%')
-              .height(54)
-              .padding({ left: 10, right: 10 })
+              .constraintSize({ minHeight: 64 })
+              .padding({ left: 12, right: 12 })
               .borderRadius(12)
-              .backgroundColor(event.id === this.featuredEventID ? AppTheme.brandSoft : Color.Transparent)
+              .backgroundColor(event.id === this.featuredEventID
+                ? EventPresentation.categoryBackground(event.category) : Color.Transparent)
               .onClick(() => {
                 this.featuredEventID = event.id;
               })
             }, (event: CountdownEvent) => event.id)
           }
           .width('100%')
+          .padding(4)
+          .borderRadius(12)
+          .backgroundColor(AppTheme.materialBackground)
         }
       }
       .width('100%')
-      .padding(14)
-      .borderRadius(AppTheme.cardRadius)
-      .backgroundColor(AppTheme.cardBackground)
     }
     .width('100%')
   }
 
   @Builder
-  private contentModeButton(title: string, mode: CountdownCardContentMode) {
-    Button(title)
-      .height(42)
-      .layoutWeight(1)
-      .fontSize(12)
-      .fontWeight(FontWeight.Bold)
-      .fontColor(this.contentMode === mode ? Color.White : AppTheme.secondaryText)
-      .backgroundColor(this.contentMode === mode ? AppTheme.brand : AppTheme.materialBackground)
-      .borderRadius(13)
+  private contentModeButton(title: string, detail: string, icon: Resource, mode: CountdownCardContentMode) {
+    Button({ type: ButtonType.Normal }) {
+      Row({ space: 12 }) {
+        Image(icon)
+          .width(32).height(32).padding(7)
+          .fillColor(this.contentMode === mode ? this.themeActionColor(this.theme) : AppTheme.secondaryText)
+          .borderRadius(10)
+          .backgroundColor(this.contentMode === mode
+            ? this.themeSelectionBackground(this.theme) : AppTheme.materialBackground)
+        Column({ space: 3 }) {
+          Text(title)
+            .fontSize(14).fontWeight(FontWeight.Bold)
+            .fontColor(AppTheme.primaryText)
+          Text(detail)
+            .fontSize(12).fontColor(AppTheme.secondaryText)
+            .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+        }
+        .alignItems(HorizontalAlign.Start).layoutWeight(1)
+        Image($r('app.media.ui_check'))
+          .width(20).height(20).fillColor(this.themeActionColor(this.theme))
+          .opacity(this.contentMode === mode ? 1 : 0)
+      }
+      .width('100%')
+    }
+      .width('100%').height(68)
+      .padding({ left: 12, right: 12 })
+      .backgroundColor(this.contentMode === mode
+        ? this.themeSelectionBackground(this.theme) : AppTheme.materialBackground)
+      .borderRadius(12)
       .onClick(() => {
         this.contentMode = mode;
         if (mode === CountdownCardContentMode.Featured && this.featuredEventID.length === 0 &&
@@ -279,26 +347,26 @@ struct CardCenterPage {
 
   @Builder
   private paletteSection() {
-    Column({ space: 10 }) {
+    Column({ space: 12 }) {
       this.sectionTitle(L.text('card.center.palette'))
       Row({ space: 8 }) {
         this.paletteButton(
           L.text('card.center.palette_smart'),
           CountdownCardTheme.Colorful,
-          '#F5F7FA',
-          '#2F8E75',
+          CardPalette.background(CountdownCardTheme.Colorful),
+          this.previewAccent(CountdownCardTheme.Colorful),
         )
         this.paletteButton(
           L.text('card.center.palette_indigo'),
           CountdownCardTheme.Minimal,
-          '#F4F4F7',
-          '#5B61C7',
+          CardPalette.background(CountdownCardTheme.Minimal),
+          this.previewAccent(CountdownCardTheme.Minimal),
         )
         this.paletteButton(
           L.text('card.center.palette_dark'),
           CountdownCardTheme.Midnight,
-          '#0B1020',
-          '#3F4AA8',
+          CardPalette.background(CountdownCardTheme.Midnight),
+          this.previewAccent(CountdownCardTheme.Midnight),
         )
       }
       .width('100%')
@@ -313,35 +381,33 @@ struct CardCenterPage {
     outerColor: string,
     heroColor: string,
   ) {
-    Button() {
-      Column({ space: 6 }) {
-        Stack() {
-          Row()
-            .width(34)
-            .height(22)
-            .borderRadius(7)
-            .backgroundColor(outerColor)
-            .border({ width: 1, color: '#22000000' })
-          Row()
-            .width(24)
-            .height(14)
-            .borderRadius(5)
-            .backgroundColor(heroColor)
+    Button({ type: ButtonType.Normal }) {
+      Column({ space: 7 }) {
+        Row({ space: 4 }) {
+          Image(CardPalette.categoryIcon(this.previewCategorySymbol()))
+            .width(13).height(13).fillColor(heroColor)
+          Text('18')
+            .fontSize(18).fontWeight(FontWeight.Bold)
+            .fontColor(heroColor)
         }
-        .width(36)
-        .height(24)
-        .alignContent(Alignment.Center)
+        .width('100%').height(40)
+        .justifyContent(FlexAlign.Center)
+        .backgroundColor(outerColor)
+        .borderRadius(8)
 
         Text(title)
           .fontSize(12)
           .fontWeight(this.theme === theme ? FontWeight.Bold : FontWeight.Medium)
-          .fontColor(this.theme === theme ? AppTheme.brand : AppTheme.secondaryText)
+          .fontColor(this.theme === theme ? AppTheme.primaryText : AppTheme.secondaryText)
       }
+      .width('100%').alignItems(HorizontalAlign.Center)
     }
-    .height(72)
+    .height(96)
     .layoutWeight(1)
-    .borderRadius(16)
-    .backgroundColor(this.theme === theme ? AppTheme.brandSoft : AppTheme.cardBackground)
+    .padding({ left: 8, right: 8, top: 9, bottom: 8 })
+    .backgroundColor(this.theme === theme ? this.themeSelectionBackground(theme) : AppTheme.materialBackground)
+    .border({ width: { bottom: this.theme === theme ? 3 : 0 }, color: this.themeActionColor(theme) })
+    .borderRadius(12)
     .onClick(() => {
       this.theme = theme;
     })
@@ -352,32 +418,31 @@ struct CardCenterPage {
     Column({ space: 8 }) {
       if (this.cards.length === 0) {
         Text(L.text('card.center.size_hint'))
-          .fontSize(11)
+          .fontSize(12)
           .fontColor(AppTheme.secondaryText)
           .textAlign(TextAlign.Center)
           .maxLines(2)
       }
 
-      Button(this.cards.length === 0
-        ? L.text('card.center.add')
-        : L.text('card.center.save_refresh'))
-        .width('100%')
-        .height(AppTheme.primaryActionHeight)
-        .fontSize(16)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(Color.White)
-        .backgroundColor(this.canSave() ? AppTheme.brand : AppTheme.disabledBackground)
-        .borderRadius(AppTheme.primaryActionRadius)
-        .enabled(this.canSave() && !this.isSaving)
-        .onClick(() => {
-          this.performPrimaryAction();
-        })
+      AppPrimaryButton({
+        label: this.cards.length === 0 ? L.text('card.center.add') : L.text('card.center.save_refresh'),
+        available: this.canSave(),
+        busy: this.isSaving,
+        accent: this.themeActionColor(this.theme),
+        onAction: () => { this.performPrimaryAction(); },
+      })
 
       if (this.cards.length > 0) {
-        Button(L.text('card.center.add_another'))
-          .height(38)
-          .fontSize(13)
-          .fontColor(AppTheme.brand)
+        Button({ type: ButtonType.Normal }) {
+          Row({ space: 7 }) {
+            Image($r('app.media.ui_add'))
+              .width(18).height(18).fillColor(this.themeActionColor(this.theme))
+            Text(L.text('card.center.add_another'))
+              .fontSize(13).fontWeight(FontWeight.Medium)
+              .fontColor(this.themeActionColor(this.theme))
+          }
+        }
+          .width('100%').height(44)
           .backgroundColor(Color.Transparent)
           .onClick(() => {
             this.openCardManager();
@@ -393,9 +458,10 @@ struct CardCenterPage {
   private sectionTitle(title: string) {
     Text(title)
       .width('100%')
-      .fontSize(AppTheme.sectionTitleSize)
+      .fontSize(13)
       .fontWeight(FontWeight.Bold)
-      .fontColor(AppTheme.primaryText)
+      .fontColor(AppTheme.secondaryText)
+      .letterSpacing(1)
       .padding({ left: 2 })
   }
 
@@ -546,5 +612,49 @@ struct CardCenterPage {
   private shortFormID(formID: string): string {
     const suffix = formID.length > 4 ? formID.slice(formID.length - 4) : formID;
     return L.format('card.center.form_label', suffix);
+  }
+
+  private previewSize(): CountdownCardSize {
+    const selected = this.cards.find((card: CountdownCardInstance) => card.id === this.selectedFormID);
+    return selected?.size ?? CountdownCardSize.Small;
+  }
+
+  private previewEvent(): CountdownEvent {
+    if (this.contentMode === CountdownCardContentMode.Featured) {
+      const featured = this.events.find((event: CountdownEvent) => event.id === this.featuredEventID);
+      if (featured !== undefined) {
+        return featured;
+      }
+    }
+    return this.events[0];
+  }
+
+  private themeSelectionBackground(theme: CountdownCardTheme): string {
+    return theme === CountdownCardTheme.Minimal ? '#F0EDFC' :
+      theme === CountdownCardTheme.Midnight ? '#EDF0F4' : '#E8F6F2';
+  }
+
+  private themeActionColor(theme: CountdownCardTheme): string {
+    return theme === CountdownCardTheme.Minimal ? '#6660BD' :
+      theme === CountdownCardTheme.Midnight ? '#383951' : '#087F75';
+  }
+
+  private cardShapeWidth(size: CountdownCardSize): number {
+    return size === CountdownCardSize.Medium ? 42 : size === CountdownCardSize.Large ? 28 : 24;
+  }
+
+  private cardShapeHeight(size: CountdownCardSize): number {
+    return size === CountdownCardSize.Large ? 28 : 23;
+  }
+
+  private previewCategorySymbol(): string {
+    const featuredID = this.contentMode === CountdownCardContentMode.Featured ? this.featuredEventID : undefined;
+    const entries = CardTimelineProvider.entries(this.events, 1, new Date(), featuredID);
+    return entries.length > 0 ? entries[0].categorySymbol : '✨';
+  }
+
+  private previewAccent(theme: CountdownCardTheme): string {
+    return theme === CountdownCardTheme.Colorful
+      ? CardPalette.categoryColor(this.previewCategorySymbol()) : CardPalette.accent(theme);
   }
 }

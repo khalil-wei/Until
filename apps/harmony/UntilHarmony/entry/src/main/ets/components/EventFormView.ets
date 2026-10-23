@@ -1,6 +1,7 @@
 import {
   EventCategory,
   EventDateCalendar,
+  EventRecurrence,
   ReminderLeadTime,
 } from '../model/CountdownEvent';
 import { LunarCalendar } from '../services/LunarCalendar';
@@ -16,9 +17,10 @@ export struct EventFormView {
   @State private isDatePickerExpanded: boolean = false;
 
   build() {
-    Column({ space: 14 }) {
+    Column({ space: 28 }) {
       this.basicSection()
       this.dateSection()
+      this.recurrenceSection()
       this.reminderSection()
       this.moreSettingsSection()
     }
@@ -27,12 +29,13 @@ export struct EventFormView {
 
   @Builder
   private basicSection() {
-    Column({ space: 12 }) {
+    Column({ space: 16 }) {
+      this.sectionEyebrow(L.text('add.section.basic'))
       Row({ space: 12 }) {
         this.titleCategoryIcon()
 
         TextInput({ placeholder: L.text('add.title.placeholder'), text: this.state.title })
-          .height(58)
+          .height(54)
           .layoutWeight(1)
           .fontSize(16)
           .fontWeight(FontWeight.Medium)
@@ -48,10 +51,9 @@ export struct EventFormView {
           })
       }
       .width('100%')
-      .height(82)
-      .padding({ left: 16, right: 16, top: 14, bottom: 14 })
-      .borderRadius(AppTheme.cardRadius)
-      .backgroundColor(AppTheme.cardBackground)
+      .height(64)
+      .padding({ left: 2, right: 2, top: 4, bottom: 4 })
+      .border({ width: { bottom: 1 }, color: AppTheme.separator })
 
       this.categoryPicker()
     }
@@ -59,46 +61,50 @@ export struct EventFormView {
 
   @Builder
   private dateSection() {
-    Column() {
+    Column({ space: 12 }) {
+      this.sectionEyebrow(L.text('add.section.date'))
       Row({ space: 14 }) {
-        this.formIcon($r('app.media.form_calendar'), AppTheme.brandSoft, 42)
+        this.formIcon($r('app.media.ui_calendar'), 28)
 
         Column({ space: 4 }) {
-          Text(L.text('add.section.date'))
+          Text(L.text('add.date.select'))
             .fontSize(12)
             .fontWeight(FontWeight.Medium)
             .fontColor(AppTheme.secondaryText)
           Text(this.state.hasConfirmedDate
-            ? EventPresentation.displayDate(this.selectedDate(), this.state.dateCalendar)
+            ? EventPresentation.compactDate(this.selectedDate(), this.state.dateCalendar)
             : L.text('add.date.unconfirmed'))
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
             .fontColor(AppTheme.primaryText)
-            .maxLines(1)
+            .maxLines(3)
           if (this.state.hasConfirmedDate) {
             Text(this.dateSummaryText())
-              .fontSize(11)
+              .fontSize(12)
               .fontColor(AppTheme.tertiaryText)
-              .maxLines(1)
+              .maxLines(3)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
           }
         }
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)
 
-        Text(this.isDatePickerExpanded ? '\u2303' : '\u203A')
-          .fontSize(28)
-          .fontColor(AppTheme.secondaryText)
+        Image($r('app.media.ui_chevron'))
+          .width(18)
+          .height(18)
+          .fillColor(AppTheme.secondaryText)
+          .rotate({ angle: this.isDatePickerExpanded ? -90 : 0 })
       }
       .width('100%')
-      .height(88)
-      .padding({ left: 16, right: 18 })
+      .constraintSize({ minHeight: 82 })
+      .padding({ left: 14, right: 14, top: 12, bottom: 12 })
+      .borderRadius(18)
+      .backgroundColor(EventPresentation.categoryBackground(this.state.category))
       .onClick(() => {
         this.isDatePickerExpanded = !this.isDatePickerExpanded;
       })
 
       if (this.isDatePickerExpanded) {
-        this.divider()
         if (this.supportsDateCalendar()) {
           this.calendarPicker()
         }
@@ -117,10 +123,10 @@ export struct EventFormView {
           .fontSize(14)
           .fontWeight(FontWeight.Bold)
           .fontColor(Color.White)
-          .height(42)
+          .constraintSize({ minHeight: AppTheme.minimumTouchSize })
           .width('100%')
           .borderRadius(13)
-          .backgroundColor(AppTheme.brand)
+          .backgroundColor(EventPresentation.categoryColor(this.state.category))
           .margin({ left: 14, right: 14, bottom: 14 })
           .onClick(() => {
             this.setDateText(this.state.dateText, true);
@@ -129,29 +135,60 @@ export struct EventFormView {
       }
     }
     .width('100%')
-    .borderRadius(AppTheme.cardRadius)
-    .backgroundColor(AppTheme.cardBackground)
+  }
+
+  @Builder
+  private recurrenceSection() {
+    Column({ space: 12 }) {
+      this.sectionEyebrow(L.text('detail.repeat'))
+      Row({ space: 8 }) {
+        this.recurrenceButton(EventRecurrence.Yearly)
+        this.recurrenceButton(EventRecurrence.Monthly)
+        this.recurrenceButton(EventRecurrence.Weekly)
+      }
+      .width('100%')
+      Text(L.text('detail.repeat.helper'))
+        .fontSize(12)
+        .fontColor(AppTheme.secondaryText)
+        .width('100%')
+    }
+  }
+
+  @Builder
+  private recurrenceButton(recurrence: EventRecurrence) {
+    Button(L.text('detail.repeat.' + recurrence), { type: ButtonType.Normal })
+      .fontSize(13)
+      .fontWeight(this.state.recurrence === recurrence ? FontWeight.Bold : FontWeight.Medium)
+      .constraintSize({ minHeight: AppTheme.minimumTouchSize })
+      .layoutWeight(1)
+      .backgroundColor(this.state.recurrence === recurrence
+        ? EventPresentation.categoryBackground(this.state.category) : AppTheme.materialBackground)
+      .fontColor(this.state.recurrence === recurrence
+        ? EventPresentation.categoryColor(this.state.category) : AppTheme.secondaryText)
+      .borderRadius(10)
+      .onClick(() => {
+        this.state.recurrence = recurrence;
+        this.validationMessage = '';
+      })
   }
 
   @Builder
   private reminderSection() {
     Column({ space: 14 }) {
+      this.sectionEyebrow(L.text('add.reminder.section'))
       Row({ space: 12 }) {
-        this.formIcon($r('app.media.form_bell'), AppTheme.brandSoft, 42)
+        this.formIcon($r('app.media.ui_bell'), 28)
         Column({ space: 3 }) {
-          Text(L.text('add.reminder.section'))
+          Text(L.reminderLabel(this.state.reminderLeadTime))
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
             .fontColor(AppTheme.primaryText)
-          Text(L.reminderLabel(this.state.reminderLeadTime))
-            .fontSize(12)
-            .fontColor(AppTheme.secondaryText)
         }
         .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
 
-      Column({ space: 9 }) {
+      Column({ space: 8 }) {
         Row({ space: 8 }) {
           this.reminderButton(ReminderLeadTime.OneDay)
           this.reminderButton(ReminderLeadTime.SameDay)
@@ -167,38 +204,29 @@ export struct EventFormView {
       }
       .padding({ top: 2 })
     }
-    .padding(14)
-    .borderRadius(AppTheme.cardRadius)
-    .backgroundColor(AppTheme.cardBackground)
   }
 
   @Builder
   private moreSettingsSection() {
     Column({ space: 0 }) {
-      Text(L.text('add.section.more_settings'))
-        .fontSize(16)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(AppTheme.primaryText)
-        .width('100%')
-        .textAlign(TextAlign.Start)
-        .margin({ bottom: 8 })
+      this.sectionEyebrow(L.text('add.section.more_settings'))
 
       Row({ space: 12 }) {
-        this.formIcon($r('app.media.form_note'), AppTheme.brandSoft, 36)
+        this.formIcon($r('app.media.ui_note'), 28)
         Column({ space: 0 }) {
           Text(`${L.text('add.section.notes')}${L.text('add.notes.optional')}`)
-            .height(20)
+            .constraintSize({ minHeight: 20 })
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
             .fontColor(AppTheme.primaryText)
           TextInput({ placeholder: L.text('add.notes.placeholder'), text: this.state.notes })
-            .height(18)
-            .fontSize(11)
+            .height(44)
+            .fontSize(14)
             .fontWeight(FontWeight.Regular)
             .fontColor(AppTheme.secondaryText)
             .placeholderColor(AppTheme.tertiaryText)
             .placeholderFont({
-              size: 11,
+              size: 14,
               weight: FontWeight.Regular,
             })
             .backgroundColor(Color.Transparent)
@@ -211,41 +239,41 @@ export struct EventFormView {
           .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
-      .height(60)
+      .constraintSize({ minHeight: 76 })
+      .padding({ top: 8, bottom: 8 })
 
       this.divider()
 
       Row({ space: 12 }) {
-        this.formIcon($r('app.media.form_sync_calendar'), AppTheme.brandSoft, 36)
+        this.formIcon($r('app.media.ui_calendar'), 28)
         Column({ space: 0 }) {
           Text(L.text('add.sync_to_calendar'))
-            .height(20)
+            .constraintSize({ minHeight: 20 })
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
             .fontColor(AppTheme.primaryText)
           Text(L.text('add.sync_footer'))
-            .height(18)
-            .fontSize(11)
+            .constraintSize({ minHeight: 24 })
+            .fontSize(12)
             .fontWeight(FontWeight.Regular)
             .fontColor(AppTheme.tertiaryText)
-            .maxLines(1)
+            .maxLines(3)
         }
           .alignItems(HorizontalAlign.Start)
           .layoutWeight(1)
 
         Toggle({ type: ToggleType.Switch, isOn: this.state.shouldSyncToCalendar })
-          .selectedColor(AppTheme.brand)
+          .selectedColor(EventPresentation.categoryColor(this.state.category))
           .onChange((isOn: boolean) => {
             this.setShouldSyncToCalendar(isOn);
           })
       }
       .width('100%')
-      .height(60)
+      .constraintSize({ minHeight: 76 })
+      .padding({ top: 8, bottom: 8 })
     }
     .width('100%')
-    .padding({ left: 14, right: 14, top: 14, bottom: 8 })
-    .borderRadius(AppTheme.cardRadius)
-    .backgroundColor(AppTheme.cardBackground)
+    .padding({ bottom: 8 })
   }
 
   @Builder
@@ -256,9 +284,7 @@ export struct EventFormView {
       this.categoryButton(EventCategory.Custom)
     }
     .width('100%')
-    .padding(5)
-    .borderRadius(18)
-    .backgroundColor(AppTheme.materialBackground)
+    .padding({ top: 2 })
   }
 
   @Builder
@@ -273,14 +299,16 @@ export struct EventFormView {
 
   @Builder
   private reminderButton(reminderLeadTime: ReminderLeadTime) {
-    Button() {
+    Button({ type: ButtonType.Normal }) {
       Row({ space: 7 }) {
         Text(L.reminderLabel(reminderLeadTime))
           .fontSize(12)
           .fontWeight(this.state.reminderLeadTime === reminderLeadTime ? FontWeight.Bold : FontWeight.Medium)
-          .fontColor(this.state.reminderLeadTime === reminderLeadTime ? Color.White : AppTheme.secondaryText)
+          .fontColor(this.state.reminderLeadTime === reminderLeadTime
+            ? EventPresentation.categoryColor(this.state.category) : AppTheme.secondaryText)
         if (this.state.reminderLeadTime === reminderLeadTime) {
-          Image($r('app.media.form_selected_check'))
+          Image($r('app.media.ui_check'))
+            .fillColor(EventPresentation.categoryColor(this.state.category))
             .width(18)
             .height(18)
         }
@@ -290,8 +318,11 @@ export struct EventFormView {
     }
       .height(44)
       .layoutWeight(1)
-      .backgroundColor(this.state.reminderLeadTime === reminderLeadTime ? AppTheme.brand : AppTheme.materialBackground)
-      .borderRadius(15)
+      .backgroundColor(this.state.reminderLeadTime === reminderLeadTime
+        ? EventPresentation.categoryBackground(this.state.category) : AppTheme.materialBackground)
+      .border({ width: { bottom: this.state.reminderLeadTime === reminderLeadTime ? 2 : 0 },
+        color: EventPresentation.categoryColor(this.state.category) })
+      .borderRadius(12)
       .onClick(() => {
         this.setReminderLeadTime(reminderLeadTime);
       })
@@ -299,26 +330,26 @@ export struct EventFormView {
 
   @Builder
   private categoryButton(category: EventCategory) {
-    Button() {
-      Column({ space: 3 }) {
-        Text(EventPresentation.categorySymbol(category))
-          .fontSize(22)
-          .width(28)
-          .height(25)
-          .textAlign(TextAlign.Center)
-          .opacity(this.state.category === category ? 1 : 0.72)
+    Button({ type: ButtonType.Normal }) {
+      Row({ space: 8 }) {
+        Image(EventPresentation.categoryIcon(category))
+          .width(22)
+          .height(22)
+          .fillColor(EventPresentation.categoryColor(category))
         Text(L.categoryLabel(category))
           .fontSize(12)
           .fontWeight(this.state.category === category ? FontWeight.Bold : FontWeight.Medium)
-          .fontColor(this.state.category === category ? this.categoryColor(category) : AppTheme.secondaryText)
+          .fontColor(this.state.category === category ? EventPresentation.categoryColor(category) : AppTheme.primaryText)
       }
       .width('100%')
-      .alignItems(HorizontalAlign.Center)
+      .justifyContent(FlexAlign.Center)
     }
-    .height(54)
+    .constraintSize({ minHeight: 62 })
     .layoutWeight(1)
-    .backgroundColor(this.state.category === category ? this.categorySoftColor(category) : Color.Transparent)
-    .borderRadius(14)
+    .backgroundColor(EventPresentation.categoryBackground(category))
+    .borderRadius(12)
+    .border({ width: { bottom: this.state.category === category ? 2 : 0 },
+      color: EventPresentation.categoryColor(category) })
     .onClick(() => {
       this.setCategory(category);
     })
@@ -326,13 +357,15 @@ export struct EventFormView {
 
   @Builder
   private calendarButton(dateCalendar: EventDateCalendar) {
-    Button(L.calendarLabel(dateCalendar))
+    Button(L.calendarLabel(dateCalendar), { type: ButtonType.Normal })
       .fontSize(13)
       .fontWeight(this.state.dateCalendar === dateCalendar ? FontWeight.Bold : FontWeight.Medium)
-      .height(36)
+      .constraintSize({ minHeight: AppTheme.minimumTouchSize })
       .layoutWeight(1)
-      .backgroundColor(this.state.dateCalendar === dateCalendar ? AppTheme.brandSoft : AppTheme.materialBackground)
-      .fontColor(this.state.dateCalendar === dateCalendar ? AppTheme.brand : AppTheme.secondaryText)
+      .backgroundColor(this.state.dateCalendar === dateCalendar
+        ? EventPresentation.categoryBackground(this.state.category) : AppTheme.materialBackground)
+      .fontColor(this.state.dateCalendar === dateCalendar
+        ? EventPresentation.categoryColor(this.state.category) : AppTheme.secondaryText)
       .borderRadius(10)
       .onClick(() => {
         this.setDateCalendar(dateCalendar);
@@ -340,24 +373,35 @@ export struct EventFormView {
   }
 
   @Builder
-  private formIcon(icon: Resource, background: ResourceColor, size: number) {
+  private formIcon(icon: Resource, size: number) {
     Image(icon)
       .width(size)
       .height(size)
-      .borderRadius(size / 2)
-      .backgroundColor(background)
-      .padding(size >= 46 ? 12 : 10)
+      .borderRadius(9)
+      .fillColor(EventPresentation.categoryColor(this.state.category))
+      .backgroundColor(EventPresentation.categoryBackground(this.state.category))
+      .padding(6)
+  }
+
+  @Builder
+  private sectionEyebrow(title: string) {
+    Text(title)
+      .width('100%')
+      .fontSize(13)
+      .fontWeight(FontWeight.Bold)
+      .fontColor(AppTheme.secondaryText)
+      .letterSpacing(1)
   }
 
   @Builder
   private titleCategoryIcon() {
-    Text(EventPresentation.categorySymbol(this.state.category))
-      .fontSize(24)
-      .width(44)
-      .height(44)
-      .textAlign(TextAlign.Center)
-      .borderRadius(22)
-      .backgroundColor(this.categorySoftColor(this.state.category))
+    Image(EventPresentation.categoryIcon(this.state.category))
+      .width(36)
+      .height(36)
+      .padding(8)
+      .fillColor(EventPresentation.categoryColor(this.state.category))
+      .borderRadius(11)
+      .backgroundColor(EventPresentation.categoryBackground(this.state.category))
   }
 
   @Builder
@@ -366,28 +410,6 @@ export struct EventFormView {
       .height(1)
       .width('100%')
       .backgroundColor(AppTheme.separator)
-  }
-
-  private categoryColor(category: EventCategory): ResourceColor {
-    switch (category) {
-      case EventCategory.Birthday:
-        return '#E88971';
-      case EventCategory.Anniversary:
-        return '#C44761';
-      case EventCategory.Custom:
-        return AppTheme.brand;
-    }
-  }
-
-  private categorySoftColor(category: EventCategory): ResourceColor {
-    switch (category) {
-      case EventCategory.Birthday:
-        return AppTheme.warningSoft;
-      case EventCategory.Anniversary:
-        return AppTheme.dangerSoft;
-      case EventCategory.Custom:
-        return AppTheme.brandSoft;
-    }
   }
 
   private selectedDate(): Date {
@@ -400,7 +422,7 @@ export struct EventFormView {
     }
 
     if (this.state.dateCalendar === EventDateCalendar.Lunar) {
-      return this.dateHelperText();
+      return `${L.calendarLabel(this.state.dateCalendar)} · ${L.text('detail.repeat.' + this.state.recurrence)}`;
     }
 
     return L.calendarLabel(EventDateCalendar.Gregorian);
@@ -423,6 +445,7 @@ export struct EventFormView {
       title,
       category: this.state.category,
       dateCalendar: this.state.dateCalendar,
+      recurrence: this.state.recurrence,
       dateText: this.state.dateText,
       hasConfirmedDate: this.state.hasConfirmedDate,
       notes: this.state.notes,
@@ -436,6 +459,7 @@ export struct EventFormView {
       title: this.state.title,
       category: this.state.category,
       dateCalendar: this.state.dateCalendar,
+      recurrence: this.state.recurrence,
       dateText: this.state.dateText,
       hasConfirmedDate: this.state.hasConfirmedDate,
       notes,
@@ -449,6 +473,7 @@ export struct EventFormView {
       title: this.state.title,
       category: this.state.category,
       dateCalendar: this.state.dateCalendar,
+      recurrence: this.state.recurrence,
       dateText,
       hasConfirmedDate,
       notes: this.state.notes,
@@ -462,6 +487,7 @@ export struct EventFormView {
       title: this.state.title,
       category: this.state.category,
       dateCalendar: this.state.dateCalendar,
+      recurrence: this.state.recurrence,
       dateText: this.state.dateText,
       hasConfirmedDate: this.state.hasConfirmedDate,
       notes: this.state.notes,
@@ -475,6 +501,7 @@ export struct EventFormView {
       title: this.state.title,
       category: this.state.category,
       dateCalendar: this.state.dateCalendar,
+      recurrence: this.state.recurrence,
       dateText: this.state.dateText,
       hasConfirmedDate: this.state.hasConfirmedDate,
       notes: this.state.notes,
@@ -492,6 +519,7 @@ export struct EventFormView {
       title: this.state.title,
       category,
       dateCalendar,
+      recurrence: this.state.recurrence,
       dateText: this.state.dateText,
       hasConfirmedDate: this.state.hasConfirmedDate,
       notes: this.state.notes,
@@ -505,6 +533,7 @@ export struct EventFormView {
       title: this.state.title,
       category: this.state.category,
       dateCalendar,
+      recurrence: this.state.recurrence,
       dateText: this.state.dateText,
       hasConfirmedDate: this.state.hasConfirmedDate,
       notes: this.state.notes,
@@ -520,6 +549,7 @@ export struct EventFormView {
       title: next.title,
       category: next.category,
       dateCalendar: next.dateCalendar,
+      recurrence: next.recurrence,
       dateText: next.dateText,
       hasConfirmedDate: next.hasConfirmedDate,
       notes: next.notes,

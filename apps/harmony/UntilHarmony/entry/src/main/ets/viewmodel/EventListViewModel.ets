@@ -116,6 +116,7 @@ export class EventListViewModel {
           originalDate: event.originalDate,
           category: event.category,
           dateCalendar: event.dateCalendar,
+          recurrence: event.recurrence,
           source: source,
           isIgnored: event.isIgnored ?? false,
           calendarEventID: calendarEventID,
@@ -196,7 +197,7 @@ export class EventListViewModel {
   private matchesMirrorEvent(first: CountdownEvent, second: CountdownEvent): boolean {
     const firstTitle = first.title.trim().toLocaleLowerCase();
     const secondTitle = second.title.trim().toLocaleLowerCase();
-    return firstTitle === secondTitle &&
+    return (first.recurrence ?? 'yearly') === (second.recurrence ?? 'yearly') && firstTitle === secondTitle &&
       first.nextOccurrence.getMonth() === second.nextOccurrence.getMonth() &&
       first.nextOccurrence.getDate() === second.nextOccurrence.getDate();
   }
@@ -269,6 +270,7 @@ export class EventListViewModel {
       originalDate: importedEvent.originalDate,
       category: importedEvent.category,
       dateCalendar: importedEvent.dateCalendar,
+      recurrence: importedEvent.recurrence,
       source: EventSource.ImportedCalendar,
       isIgnored: false,
       calendarEventID: importedEvent.calendarEventID,

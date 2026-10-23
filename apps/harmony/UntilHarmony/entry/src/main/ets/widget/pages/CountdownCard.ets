@@ -1,3 +1,4 @@
+import { CardPalette } from '../../card/CardPalette';
 let storage = new LocalStorage();
 
 @Entry(storage)
@@ -31,7 +32,7 @@ struct CountdownCard {
   @LocalStorageProp('entry0ShouldShowUnit') entry0ShouldShowUnit: string = 'false';
   @LocalStorageProp('entry0CategorySymbol') entry0CategorySymbol: string = '';
   @LocalStorageProp('entry0CategoryLabel') entry0CategoryLabel: string = '';
-  @LocalStorageProp('entry0UrgencyColor') entry0UrgencyColor: string = '#079D89';
+  @LocalStorageProp('entry0UrgencyColor') entry0UrgencyColor: string = '#087F75';
 
   @LocalStorageProp('entry1Visible') entry1Visible: string = 'false';
   @LocalStorageProp('entry1ID') entry1ID: string = '';
@@ -40,7 +41,7 @@ struct CountdownCard {
   @LocalStorageProp('entry1CountdownBadgeText') entry1CountdownBadgeText: string = '';
   @LocalStorageProp('entry1CountdownUnitText') entry1CountdownUnitText: string = '';
   @LocalStorageProp('entry1ShouldShowUnit') entry1ShouldShowUnit: string = 'false';
-  @LocalStorageProp('entry1UrgencyColor') entry1UrgencyColor: string = '#079D89';
+  @LocalStorageProp('entry1UrgencyColor') entry1UrgencyColor: string = '#087F75';
   @LocalStorageProp('entry1CategorySymbol') entry1CategorySymbol: string = '';
 
   @LocalStorageProp('entry2Visible') entry2Visible: string = 'false';
@@ -50,7 +51,7 @@ struct CountdownCard {
   @LocalStorageProp('entry2CountdownBadgeText') entry2CountdownBadgeText: string = '';
   @LocalStorageProp('entry2CountdownUnitText') entry2CountdownUnitText: string = '';
   @LocalStorageProp('entry2ShouldShowUnit') entry2ShouldShowUnit: string = 'false';
-  @LocalStorageProp('entry2UrgencyColor') entry2UrgencyColor: string = '#079D89';
+  @LocalStorageProp('entry2UrgencyColor') entry2UrgencyColor: string = '#087F75';
   @LocalStorageProp('entry2CategorySymbol') entry2CategorySymbol: string = '';
 
   @LocalStorageProp('entry3Visible') entry3Visible: string = 'false';
@@ -60,7 +61,7 @@ struct CountdownCard {
   @LocalStorageProp('entry3CountdownBadgeText') entry3CountdownBadgeText: string = '';
   @LocalStorageProp('entry3CountdownUnitText') entry3CountdownUnitText: string = '';
   @LocalStorageProp('entry3ShouldShowUnit') entry3ShouldShowUnit: string = 'false';
-  @LocalStorageProp('entry3UrgencyColor') entry3UrgencyColor: string = '#079D89';
+  @LocalStorageProp('entry3UrgencyColor') entry3UrgencyColor: string = '#087F75';
   @LocalStorageProp('entry3CategorySymbol') entry3CategorySymbol: string = '';
 
   @LocalStorageProp('entry4Visible') entry4Visible: string = 'false';
@@ -70,7 +71,7 @@ struct CountdownCard {
   @LocalStorageProp('entry4CountdownBadgeText') entry4CountdownBadgeText: string = '';
   @LocalStorageProp('entry4CountdownUnitText') entry4CountdownUnitText: string = '';
   @LocalStorageProp('entry4ShouldShowUnit') entry4ShouldShowUnit: string = 'false';
-  @LocalStorageProp('entry4UrgencyColor') entry4UrgencyColor: string = '#079D89';
+  @LocalStorageProp('entry4UrgencyColor') entry4UrgencyColor: string = '#087F75';
   @LocalStorageProp('entry4CategorySymbol') entry4CategorySymbol: string = '';
 
   @LocalStorageProp('entry5Visible') entry5Visible: string = 'false';
@@ -80,7 +81,7 @@ struct CountdownCard {
   @LocalStorageProp('entry5CountdownBadgeText') entry5CountdownBadgeText: string = '';
   @LocalStorageProp('entry5CountdownUnitText') entry5CountdownUnitText: string = '';
   @LocalStorageProp('entry5ShouldShowUnit') entry5ShouldShowUnit: string = 'false';
-  @LocalStorageProp('entry5UrgencyColor') entry5UrgencyColor: string = '#079D89';
+  @LocalStorageProp('entry5UrgencyColor') entry5UrgencyColor: string = '#087F75';
   @LocalStorageProp('entry5CategorySymbol') entry5CategorySymbol: string = '';
 
   build() {
@@ -115,82 +116,50 @@ struct CountdownCard {
   @Builder
   private smallCard() {
     if (this.hasEvents === 'true') {
-      Column() {
-      Column({ space: 7 }) {
+      Column({ space: 4 }) {
         Row({ space: 6 }) {
-          Text(this.entry0CategorySymbol)
-            .fontSize(11)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#FFFFFF')
-            .width(18)
-            .height(18)
-            .textAlign(TextAlign.Center)
-            .borderRadius(9)
-            .backgroundColor('#33FFFFFF')
-
+          Image(CardPalette.categoryIcon(this.entry0CategorySymbol))
+            .width(22).height(22).padding(5)
+            .fillColor(this.heroColor())
+            .borderRadius(7)
+            .backgroundColor(this.categoryTintColor(this.entry0CategorySymbol))
           Text(this.entry0CategoryLabel)
-            .fontSize(11)
-            .fontWeight(FontWeight.Medium)
-            .fontColor('#FFFFFF')
+            .fontSize(10).fontWeight(FontWeight.Medium)
+            .fontColor(this.secondaryTextColor())
             .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-            .layoutWeight(1)
-
+          Blank()
           Text(this.brandShort)
-            .fontSize(9)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#DFFFFFFF')
+            .fontSize(9).fontWeight(FontWeight.Bold)
+            .fontColor(this.secondaryTextColor())
         }
         .width('100%')
-
         Text(this.entry0Title)
-          .fontSize(15)
-          .fontWeight(FontWeight.Bold)
-          .fontColor('#FFFFFF')
-          .maxLines(2)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .fontSize(15).fontWeight(FontWeight.Bold)
+          .fontColor(this.primaryTextColor())
+          .maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis })
           .width('100%')
-        .width('100%')
-
-        Blank()
-
-        Row({ space: 5 }) {
+        Row({ space: 4 }) {
           Text(this.entry0CountdownBadgeText)
             .fontSize(this.smallBadgeFontSize())
             .fontWeight(FontWeight.Bold)
-            .fontColor('#FFFFFF')
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .fontColor(this.heroColor())
+            .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
             .layoutWeight(1)
-
           if (this.entry0ShouldShowUnit === 'true') {
             Text(this.entry0CountdownUnitText)
-              .fontSize(14)
-              .fontWeight(FontWeight.Medium)
-              .fontColor('#E8FFFFFF')
-              .maxLines(1)
+              .fontSize(12).fontColor(this.secondaryTextColor())
           }
         }
-        .width('100%')
-        .alignItems(VerticalAlign.Bottom)
-
+        .width('100%').alignItems(VerticalAlign.Bottom)
         Text(this.entry0DateText)
-          .fontSize(9)
-          .fontWeight(FontWeight.Medium)
-          .fontColor('#DFFFFFFF')
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .fontSize(10).fontColor(this.secondaryTextColor())
+          .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
           .width('100%')
       }
       .width('100%')
-      .layoutWeight(1)
-      .padding({ left: 13, right: 13, top: 12, bottom: 12 })
-      .borderRadius(22)
-      .backgroundColor(this.heroColor())
-      }
-      .width('100%')
       .height('100%')
-      .padding(9)
+      .justifyContent(FlexAlign.SpaceEvenly)
+      .padding(16)
       .onClick(() => {
         postCardAction(this, {
           action: 'router',
@@ -206,52 +175,38 @@ struct CountdownCard {
   @Builder
   private mediumCard() {
     if (this.hasEvents === 'true') {
-      Row({ space: 10 }) {
-        Column({ space: 4 }) {
-          Row() {
-            Text(this.entry0CategorySymbol)
-              .fontSize(12)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#FFFFFF')
-            Blank()
-            Text(this.nextLabel)
-              .fontSize(8)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#DFFFFFFF')
+      Column({ space: 2 }) {
+        Row({ space: 8 }) {
+          Image(CardPalette.categoryIcon(this.entry0CategorySymbol))
+            .width(24).height(24).padding(5)
+            .fillColor(this.heroColor())
+          Column({ space: 2 }) {
+            Text(this.entry0Title)
+              .fontSize(14).fontWeight(FontWeight.Bold)
+              .fontColor(this.primaryTextColor())
+              .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
+            Text(this.entry0DateText)
+              .fontSize(10).fontColor(this.secondaryTextColor())
+              .maxLines(1).textOverflow({ overflow: TextOverflow.Ellipsis })
           }
-          .width('100%')
-
-          Text(this.entry0Title)
-            .fontSize(13)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#FFFFFF')
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-          Blank()
-
-          Row({ space: 4 }) {
+          .alignItems(HorizontalAlign.Start).layoutWeight(1)
+          Row({ space: 3 }) {
             Text(this.entry0CountdownBadgeText)
               .fontSize(this.mediumHeroFontSize())
               .fontWeight(FontWeight.Bold)
-              .fontColor('#FFFFFF')
+              .fontColor(this.heroColor())
               .maxLines(1)
-              .textOverflow({ overflow: TextOverflow.Ellipsis })
-
             if (this.entry0ShouldShowUnit === 'true') {
               Text(this.entry0CountdownUnitText)
-                .fontSize(10)
-                .fontWeight(FontWeight.Medium)
-                .fontColor('#E8FFFFFF')
+                .fontSize(10).fontColor(this.secondaryTextColor())
             }
           }
           .alignItems(VerticalAlign.Bottom)
         }
-        .width(106)
-        .height('100%')
-        .padding(11)
-        .borderRadius(20)
-        .backgroundColor(this.heroColor())
+        .width('100%').height(46)
+        .padding({ left: 8, right: 8 })
+        .borderRadius(12)
+        .backgroundColor(this.categoryTintColor(this.entry0CategorySymbol))
         .onClick(() => {
           postCardAction(this, {
             action: 'router',
@@ -259,59 +214,16 @@ struct CountdownCard {
             params: { target: 'event', eventID: this.entry0ID },
           });
         })
-
-        Column({ space: 4 }) {
-          Row({ space: 6 }) {
-            Text(this.brandShort)
-              .fontSize(10)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#079D89')
-            Text(this.sectionTitle)
-              .fontSize(11)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.secondaryTextColor())
-            Blank()
-            Text(this.eventCountText)
-              .fontSize(10)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.secondaryTextColor())
-          }
-          .width('100%')
-
-          this.compactEventRow(
-            this.entry1Visible,
-            this.entry1ID,
-            this.entry1CategorySymbol,
-            this.entry1Title,
-            this.entry1DateText,
-            this.entry1CountdownBadgeText,
-            this.entry1UrgencyColor,
-          )
-          this.compactEventRow(
-            this.entry2Visible,
-            this.entry2ID,
-            this.entry2CategorySymbol,
-            this.entry2Title,
-            this.entry2DateText,
-            this.entry2CountdownBadgeText,
-            this.entry2UrgencyColor,
-          )
-          this.compactEventRow(
-            this.entry3Visible,
-            this.entry3ID,
-            this.entry3CategorySymbol,
-            this.entry3Title,
-            this.entry3DateText,
-            this.entry3CountdownBadgeText,
-            this.entry3UrgencyColor,
-          )
-        }
-        .layoutWeight(1)
-        .height('100%')
+        this.compactEventRow(this.entry1Visible, this.entry1ID, this.entry1CategorySymbol,
+          this.entry1Title, this.entry1DateText, this.entry1CountdownBadgeText, this.entry1UrgencyColor)
+        this.compactEventRow(this.entry2Visible, this.entry2ID, this.entry2CategorySymbol,
+          this.entry2Title, this.entry2DateText, this.entry2CountdownBadgeText, this.entry2UrgencyColor)
+        this.compactEventRow(this.entry3Visible, this.entry3ID, this.entry3CategorySymbol,
+          this.entry3Title, this.entry3DateText, this.entry3CountdownBadgeText, this.entry3UrgencyColor)
       }
       .width('100%')
       .height('100%')
-      .padding({ left: 14, right: 14, top: 10, bottom: 10 })
+      .padding({ left: 12, right: 12, top: 8, bottom: 8 })
     } else {
       this.emptyCard()
     }
@@ -325,7 +237,7 @@ struct CountdownCard {
           Text(this.brandShort)
             .fontSize(11)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#079D89')
+            .fontColor(this.secondaryTextColor())
             .letterSpacing(1.2)
           Text(this.sectionTitle)
             .fontSize(11)
@@ -335,7 +247,7 @@ struct CountdownCard {
           Text(this.eventCountText)
             .fontSize(9)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#079D89')
+            .fontColor(this.secondaryTextColor())
             .padding({ left: 8, right: 8, top: 3, bottom: 3 })
             .borderRadius(10)
             .backgroundColor(this.brandTintColor())
@@ -344,83 +256,53 @@ struct CountdownCard {
         .width('100%')
         .height(26)
 
-        Stack({ alignContent: Alignment.Center }) {
-          Row()
-            .width(92)
-            .height(92)
-            .borderRadius(46)
-            .border({ width: 14, color: '#14FFFFFF' })
-            .translate({ x: 126, y: -26 })
-
+        Row({ space: 12 }) {
           Column({ space: 3 }) {
-            Row({ space: 7 }) {
-              Row({ space: 5 }) {
-                Text(this.entry0CategorySymbol)
-                  .fontSize(13)
-                Text(this.entry0CategoryLabel)
-                  .fontSize(10)
-                  .fontWeight(FontWeight.Bold)
-                  .fontColor('#FFFFFF')
-              }
-              .padding({ left: 8, right: 9, top: 3, bottom: 3 })
-              .borderRadius(12)
-              .backgroundColor('#24FFFFFF')
-
-              Blank()
-
-              Text(this.entry0DateText)
-                .fontSize(9)
-                .fontWeight(FontWeight.Medium)
-                .fontColor('#E8FFFFFF')
-                .maxLines(1)
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
-                .constraintSize({ maxWidth: 148 })
-            }
-            .width('100%')
-
-            Blank()
-
-            Row({ space: 12 }) {
-              Text(this.entry0Title)
-                .fontSize(this.largeHeroTitleFontSize())
+            Row({ space: 5 }) {
+              Image(CardPalette.categoryIcon(this.entry0CategorySymbol))
+                .width(13).height(13).fillColor(this.heroColor())
+              Text(this.entry0CategoryLabel)
+                .fontSize(10)
                 .fontWeight(FontWeight.Bold)
-                .fontColor('#FFFFFF')
-                .maxLines(this.largeHeroTitleMaxLines())
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
-                .layoutWeight(1)
-
-              Row({ space: 6 }) {
-                Text(this.entry0CountdownBadgeText)
-                  .fontSize(this.largeHeroFontSize())
-                  .fontWeight(FontWeight.Bold)
-                  .fontColor('#FFFFFF')
-                  .maxLines(1)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
-                if (this.entry0ShouldShowUnit === 'true') {
-                  Text(this.entry0CountdownUnitText)
-                    .fontSize(this.largeHeroUnitFontSize())
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor('#E8FFFFFF')
-                }
-              }
-              .alignItems(VerticalAlign.Bottom)
+                .fontColor(this.secondaryTextColor())
             }
-            .width('100%')
-            .alignItems(VerticalAlign.Bottom)
+            Text(this.entry0Title)
+              .fontSize(this.largeHeroTitleFontSize())
+              .fontWeight(FontWeight.Bold)
+              .fontColor(this.primaryTextColor())
+              .maxLines(this.largeHeroTitleMaxLines())
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+            Text(this.entry0DateText)
+              .fontSize(10)
+              .fontColor(this.secondaryTextColor())
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
           }
-          .width('100%')
-          .height('100%')
-          .padding({
-            left: this.largeHeroHorizontalPadding(),
-            right: this.largeHeroHorizontalPadding(),
-            top: 8,
-            bottom: 8,
-          })
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
+          .alignItems(HorizontalAlign.Start)
+
+          Row({ space: 5 }) {
+            Text(this.entry0CountdownBadgeText)
+              .fontSize(this.largeHeroFontSize())
+              .fontWeight(FontWeight.Bold)
+                .fontColor(this.heroColor())
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+            if (this.entry0ShouldShowUnit === 'true') {
+              Text(this.entry0CountdownUnitText)
+                .fontSize(this.largeHeroUnitFontSize())
+                .fontWeight(FontWeight.Medium)
+                .fontColor(this.secondaryTextColor())
+            }
+          }
+          .alignItems(VerticalAlign.Bottom)
         }
         .width('100%')
         .height(this.largeHeroHeight())
-        .borderRadius(22)
-        .backgroundColor(this.heroColor())
+        .padding({ left: 12, right: 12, top: 8, bottom: 8 })
+        .borderRadius(14)
+        .backgroundColor(this.categoryTintColor(this.entry0CategorySymbol))
         .onClick(() => {
           postCardAction(this, {
             action: 'router',
@@ -430,15 +312,9 @@ struct CountdownCard {
         })
 
         if (this.largeSecondaryEventCount() > 0) {
-          Row() {
-            Text(this.moreEventsTitle)
-              .fontSize(11)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(this.secondaryTextColor())
-          }
-          .width('100%')
-          .height(16)
-
+          Divider()
+            .strokeWidth(0.5)
+            .color(this.timelineDividerColor())
           Column() {
             this.largeEventRow(
               this.entry1Visible,
@@ -494,9 +370,7 @@ struct CountdownCard {
           .width('100%')
           .layoutWeight(1)
           .justifyContent(FlexAlign.SpaceEvenly)
-          .padding({ left: 12, right: 12 })
-          .borderRadius(18)
-          .backgroundColor(this.surfaceColor())
+           .padding({ left: 4, right: 4 })
         }
       }
       .width('100%')
@@ -521,11 +395,13 @@ struct CountdownCard {
     if (visible === 'true') {
       Column() {
         Row({ space: 9 }) {
-          Text(categorySymbol)
-            .fontSize(this.largeEventIconFontSize())
+          Image(CardPalette.categoryIcon(categorySymbol))
+            .padding(4)
+            .fillColor(this.cardCategoryColor(categorySymbol, urgencyColor))
             .width(this.largeEventIconSize())
             .height(this.largeEventIconSize())
-            .textAlign(TextAlign.Center)
+            .borderRadius(this.largeEventIconSize() / 2)
+            .backgroundColor(this.categoryTintColor(categorySymbol))
           Column({ space: 2 }) {
             Text(title)
               .fontSize(this.largeEventTitleFontSize())
@@ -541,14 +417,19 @@ struct CountdownCard {
           }
           .alignItems(HorizontalAlign.Start)
           .layoutWeight(1)
-          Text(`${countdownBadgeText}${this.futureSuffix(countdownBadgeText)}`)
-            .fontSize(this.largeEventCountdownFontSize())
-            .fontWeight(FontWeight.Bold)
-            .fontColor(urgencyColor)
-            .maxLines(1)
-            .padding({ left: 8, right: 8, top: 3, bottom: 3 })
-            .borderRadius(10)
-            .backgroundColor(this.countdownBadgeSurfaceColor())
+          Row({ space: 3 }) {
+            Text(countdownBadgeText)
+              .fontSize(this.largeEventCountdownFontSize())
+              .fontWeight(FontWeight.Bold)
+              .fontColor(this.cardCategoryColor(categorySymbol, urgencyColor))
+              .maxLines(1)
+            if (this.futureSuffix(countdownBadgeText).length > 0) {
+              Text(this.futureSuffix(countdownBadgeText))
+                .fontSize(10)
+                .fontColor(this.secondaryTextColor())
+            }
+          }
+          .alignItems(VerticalAlign.Bottom)
         }
         .width('100%')
         .height(this.largeEventRowHeight())
@@ -557,7 +438,7 @@ struct CountdownCard {
           Divider()
             .strokeWidth(0.5)
             .color(this.timelineDividerColor())
-            .margin({ left: this.largeEventIconSize() + 9 })
+            .margin({ left: this.largeEventIconSize() + 9, right: 4 })
         }
       }
       .width('100%')
@@ -583,14 +464,10 @@ struct CountdownCard {
   ) {
     if (visible === 'true') {
       Row({ space: 7 }) {
-        Text(categorySymbol)
-          .fontSize(11)
-          .fontColor(urgencyColor)
-          .width(18)
-          .height(18)
-          .textAlign(TextAlign.Center)
+        Image(CardPalette.categoryIcon(categorySymbol))
+          .width(18).height(18).padding(3).fillColor(this.cardCategoryColor(categorySymbol, urgencyColor))
           .borderRadius(9)
-          .backgroundColor(this.surfaceColor())
+          .backgroundColor(this.categoryTintColor(categorySymbol))
 
         Column({ space: 2 }) {
           Text(title)
@@ -607,17 +484,25 @@ struct CountdownCard {
         .alignItems(HorizontalAlign.Start)
         .layoutWeight(1)
 
-        Text(countdownBadgeText)
-          .fontSize(14)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(urgencyColor)
-          .maxLines(1)
+        Row({ space: 2 }) {
+          Text(countdownBadgeText)
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.cardCategoryColor(categorySymbol, urgencyColor))
+            .maxLines(1)
+          if (this.futureSuffix(countdownBadgeText).length > 0) {
+            Text(this.futureSuffix(countdownBadgeText))
+              .fontSize(9)
+              .fontColor(this.secondaryTextColor())
+          }
+        }
+        .alignItems(VerticalAlign.Bottom)
       }
       .width('100%')
-      .height(38)
-      .padding({ left: 8, right: 8 })
-      .borderRadius(12)
-      .backgroundColor(this.surfaceColor())
+      .height(30)
+      .padding({ left: 6, right: 6 })
+      .borderRadius(8)
+      .backgroundColor(this.categoryTintColor(categorySymbol))
       .onClick(() => {
         postCardAction(this, {
           action: 'router',
@@ -631,10 +516,9 @@ struct CountdownCard {
   @Builder
   private emptyCard() {
     Column({ space: 6 }) {
-      Text('＋')
-        .fontSize(22)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(this.secondaryTextColor())
+      Image($r('app.media.ui_add'))
+        .width(28).height(28)
+        .fillColor(CardPalette.accent(this.theme))
       Text(this.emptyTitle)
         .fontSize(14)
         .fontWeight(FontWeight.Medium)
@@ -739,11 +623,7 @@ struct CountdownCard {
 
   private largeHeroHeight(): number {
     const count = this.largeSecondaryEventCount();
-    return count >= 5 ? 76 : count >= 4 ? 88 : count >= 3 ? 100 : 104;
-  }
-
-  private largeHeroHorizontalPadding(): number {
-    return this.largeSecondaryEventCount() >= 4 ? 12 : 16;
+    return count >= 5 ? 66 : count >= 4 ? 72 : count >= 3 ? 78 : 84;
   }
 
   private largeEventRowHeight(): number {
@@ -753,10 +633,6 @@ struct CountdownCard {
 
   private largeEventIconSize(): number {
     return this.largeSecondaryEventCount() >= 4 ? 22 : 24;
-  }
-
-  private largeEventIconFontSize(): number {
-    return this.largeSecondaryEventCount() >= 4 ? 11 : 12;
   }
 
   private largeEventTitleFontSize(): number {
@@ -785,11 +661,7 @@ struct CountdownCard {
   }
 
   private brandTintColor(): string {
-    return this.theme === 'midnight' ? '#20FFFFFF' : '#14079D89';
-  }
-
-  private countdownBadgeSurfaceColor(): string {
-    return this.theme === 'midnight' ? '#18FFFFFF' : '#F2F4F7';
+    return this.theme === 'midnight' ? '#20FFFFFF' : '#14087F75';
   }
 
   private timelineDividerColor(): string {
@@ -802,34 +674,38 @@ struct CountdownCard {
 
   private heroColor(): string {
     if (this.theme === 'minimal') {
-      return '#5B61C7';
+      return CardPalette.accent(this.theme);
     }
 
     if (this.theme === 'midnight') {
-      return '#3F4AA8';
+      return CardPalette.accent(this.theme);
     }
 
-    return this.entry0UrgencyColor;
+    return this.cardCategoryColor(this.entry0CategorySymbol, this.entry0UrgencyColor);
+  }
+
+  private cardCategoryColor(symbol: string, fallback: string): string {
+    if (this.theme === 'midnight') {
+      return symbol === '🎂' ? '#F2B678' : symbol === '💝' ? '#F396B4' : '#B8AEF1';
+    }
+    return this.theme === 'minimal' ? CardPalette.accent(this.theme) : CardPalette.categoryColor(symbol, fallback);
+  }
+
+  private categoryTintColor(symbol: string): string {
+    return this.theme === 'midnight' ? '#252A3B' :
+      this.theme === 'minimal' ? '#E6E2F8' : CardPalette.categorySoft(symbol);
   }
 
   private cardBackgroundColor(): string {
-    if (this.theme === 'midnight') {
-      return '#0B1020';
-    }
-
-    return this.theme === 'minimal' ? '#F4F4F7' : '#F5F7FA';
+    return CardPalette.background(this.theme);
   }
 
   private primaryTextColor(): string {
-    return this.theme === 'midnight' ? '#F5F5F7' : '#1C1C1E';
+    return CardPalette.primary(this.theme);
   }
 
   private secondaryTextColor(): string {
-    return this.theme === 'midnight' ? '#B7B7C2' : '#636366';
-  }
-
-  private surfaceColor(): string {
-    return this.theme === 'midnight' ? '#18FFFFFF' : '#EFFFFFFF';
+    return CardPalette.secondary(this.theme);
   }
 
   private onUpdateToken(): void {

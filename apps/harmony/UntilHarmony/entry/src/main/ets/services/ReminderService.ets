@@ -15,6 +15,10 @@ export interface ReminderScheduleCandidate {
   reminderDate: Date;
 }
 
+interface ReminderScheduleCursor extends ReminderScheduleCandidate {
+  occurrenceDate: Date;
+}
+
 export class ReminderService {
   private static context?: common.UIAbilityContext;
 
@@ -101,20 +105,30 @@ export class ReminderService {
   ): ReminderScheduleCandidate[] {
     const activeEvents = events.filter((event: CountdownEvent) =>
       event.reminderLeadTime !== ReminderLeadTime.None);
-    const candidates: ReminderScheduleCandidate[] = [];
+    const frontier: ReminderScheduleCursor[] = [];
     for (let index = 0; index < activeEvents.length; index += 1) {
-      const reminderDates = ReminderService.reminderDates(activeEvents[index], 2, referenceDate);
-      for (let reminderIndex = 0; reminderIndex < reminderDates.length; reminderIndex += 1) {
-        candidates.push({
-          event: activeEvents[index],
-          reminderDate: reminderDates[reminderIndex],
-        });
+      const candidate = ReminderService.nextCandidate(activeEvents[index], referenceDate);
+      if (candidate !== undefined) {
+        frontier.push(candidate);
       }
     }
 
-    candidates.sort((first: ReminderScheduleCandidate, second: ReminderScheduleCandidate) =>
-      first.reminderDate.getTime() - second.reminderDate.getTime());
-    return candidates.slice(0, MAX_VALID_REMINDERS);
+    const candidates: ReminderScheduleCandidate[] = [];
+    while (frontier.length > 0 && candidates.length < MAX_VALID_REMINDERS) {
+      frontier.sort((first: ReminderScheduleCursor, second: ReminderScheduleCursor) =>
+        first.reminderDate.getTime() - second.reminderDate.getTime());
+      const first = frontier.shift();
+      if (first === undefined) break;
+      candidates.push({ event: first.event, reminderDate: first.reminderDate });
+      if (candidates.length === MAX_VALID_REMINDERS) break;
+      // Advance only the selected series, retaining its actual occurrence so
+      // lead-time reminders do not search already-consumed periods again.
+      const nextDay = new Date(first.occurrenceDate.getTime());
+      nextDay.setDate(nextDay.getDate() + 1);
+      const next = ReminderService.nextCandidate(first.event, referenceDate, nextDay);
+      if (next !== undefined) frontier.push(next);
+    }
+    return candidates;
   }
 
   static reminderDate(event: CountdownEvent, referenceDate: Date = new Date()): Date | undefined {
@@ -126,33 +140,54 @@ export class ReminderService {
     occurrenceCount: number = 2,
     referenceDate: Date = new Date(),
   ): Date[] {
-    if (event.reminderLeadTime === ReminderLeadTime.None) {
+    if (event.reminderLeadTime === ReminderLeadTime.None || occurrenceCount <= 0) {
       return [];
     }
 
     const reminderDates: Date[] = [];
-    let occurrenceReference = new Date(referenceDate.getTime());
-    const maximumAttempts = Math.max(occurrenceCount + 12, 14);
+    let occurrenceReference: Date | undefined = undefined;
+    for (let index = 0; index < occurrenceCount; index += 1) {
+      const candidate = ReminderService.nextCandidate(event, referenceDate, occurrenceReference);
+      if (candidate === undefined) break;
+      reminderDates.push(candidate.reminderDate);
+      occurrenceReference = new Date(candidate.occurrenceDate.getTime());
+      occurrenceReference.setDate(occurrenceReference.getDate() + 1);
+    }
+    return reminderDates;
+  }
 
-    for (let attempt = 0; attempt < maximumAttempts && reminderDates.length < occurrenceCount; attempt += 1) {
-      const occurrence = CountdownCalculator.nextAnnualOccurrence(
+  private static nextCandidate(
+    event: CountdownEvent,
+    referenceDate: Date,
+    occurrenceReference?: Date,
+  ): ReminderScheduleCursor | undefined {
+    if (event.reminderLeadTime === ReminderLeadTime.None) return undefined;
+    let cursor = occurrenceReference ?? CountdownCalculator.startOfLocalDay(referenceDate);
+    if (occurrenceReference === undefined) {
+      cursor.setDate(cursor.getDate() + event.reminderLeadTime);
+    }
+    for (let attempt = 0; attempt < 14; attempt += 1) {
+      const occurrence = CountdownCalculator.nextOccurrence(
         event.originalDate,
         event.dateCalendar,
-        occurrenceReference,
+        event.recurrence,
+        cursor,
       );
+      if (occurrence.getTime() < cursor.getTime()) return undefined;
       const reminderDate = new Date(occurrence.getTime());
       reminderDate.setDate(reminderDate.getDate() - event.reminderLeadTime);
       reminderDate.setHours(REMINDER_HOUR, 0, 0, 0);
 
       if (reminderDate.getTime() > referenceDate.getTime()) {
-        reminderDates.push(reminderDate);
+        return { event, reminderDate, occurrenceDate: occurrence };
       }
 
-      occurrenceReference = new Date(occurrence.getTime());
-      occurrenceReference.setDate(occurrenceReference.getDate() + 1);
+      const nextDay = new Date(occurrence.getTime());
+      nextDay.setDate(nextDay.getDate() + 1);
+      if (nextDay.getTime() <= cursor.getTime()) break;
+      cursor = nextDay;
     }
-
-    return reminderDates;
+    return undefined;
   }
 
   private static async publish(event: CountdownEvent, reminderDate: Date): Promise<void> {

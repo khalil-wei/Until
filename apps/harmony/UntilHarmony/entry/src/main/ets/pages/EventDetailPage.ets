@@ -1,12 +1,13 @@
+import { AppPageHeader } from '../components/AppPageHeader';
 import { router } from '@kit.ArkUI';
 import { CalendarSyncCoordinator } from '../calendar/CalendarSyncCoordinator';
-import { EventRowView } from '../components/EventRowView';
 import {
   CountdownEvent,
   CountdownEventFactory,
   EventCategory,
   EventDateCalendar,
   EventSource,
+  ReminderLeadTime,
 } from '../model/CountdownEvent';
 import { AppEventStore } from '../repository/AppEventStore';
 import { AppTheme } from '../utils/AppTheme';
@@ -14,6 +15,7 @@ import { EventPresentation } from '../utils/EventPresentation';
 import { L } from '../utils/LocalizedText';
 import { EventListViewModel } from '../viewmodel/EventListViewModel';
 import { CountdownCalculator } from '../services/CountdownCalculator';
+import { ReminderService } from '../services/ReminderService';
 import { accessibility } from '@kit.AccessibilityKit';
 
 interface EventRouteParams {
@@ -35,6 +37,9 @@ struct EventDetailPage {
     12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
   ];
 
+  @StorageProp('appForegroundRevision') @Watch('refreshReminderPermission')
+  private appForegroundRevision: number = 0;
+
   @StorageProp('activeCardEventID') @Watch('handleActiveCardRoute') activeCardEventID: string = '';
 
   @State private event: CountdownEvent = CountdownEventFactory.create({
@@ -42,6 +47,8 @@ struct EventDetailPage {
     originalDate: new Date(),
     category: EventCategory.Custom,
   });
+  @State private reminderUnauthorized: boolean = false;
+  @State private isRequestingReminder: boolean = false;
   @State private hasEvent: boolean = false;
   @State private isMutating: boolean = false;
   @State private actionError: string = '';
@@ -121,10 +128,11 @@ struct EventDetailPage {
           .alignItems(HorizontalAlign.Center)
         } else {
           Scroll() {
-            Column({ space: 14 }) {
+            Column({ space: 24 }) {
               this.detailCountdownRow()
               this.countdownEasterEggFeedback()
               this.specialNumberMessage()
+              this.reminderPermissionNotice()
               this.infoSection()
               if (this.hasNotes()) {
                 this.notesSection()
@@ -151,12 +159,100 @@ struct EventDetailPage {
   }
 
   @Builder
+  private reminderPermissionNotice() {
+    if (this.reminderUnauthorized && this.event.reminderLeadTime !== ReminderLeadTime.None) {
+      Column({ space: 12 }) {
+        Text(L.text('detail.reminder_permission_notice'))
+          .fontSize(14)
+          .fontColor(AppTheme.primaryText)
+          .width('100%')
+        Button(L.text('detail.reminder_permission_action'))
+          .constraintSize({ minHeight: 48 })
+          .width('100%')
+          .fontColor(Color.White)
+          .backgroundColor(AppTheme.brand)
+          .enabled(!this.isRequestingReminder)
+          .onClick(() => { this.retryReminderAuthorization(); })
+      }
+      .padding(16)
+      .width('100%')
+      .borderRadius(AppTheme.cardRadius)
+      .backgroundColor(AppTheme.warningSoft)
+    }
+  }
+
+  private async refreshReminderPermission(): Promise<void> {
+    this.reminderUnauthorized = !await ReminderService.isAuthorized();
+    this.refreshReduceMotionPreference();
+  }
+
+  private async retryReminderAuthorization(): Promise<void> {
+    if (this.isRequestingReminder) { return; }
+    this.isRequestingReminder = true;
+    this.actionError = '';
+    try {
+      await this.viewModel.load();
+      await ReminderService.ensureAuthorizationAndReschedule(this.viewModel.allEvents());
+      this.reminderUnauthorized = !await ReminderService.isAuthorized();
+    } catch (_) {
+      this.actionError = L.text('detail.reminder_retry_failed');
+    } finally {
+      this.isRequestingReminder = false;
+    }
+  }
+
+  @Builder
   private detailCountdownRow() {
-    EventRowView({
-      event: this.event,
-      countdownTextOverride: this.isArrivalCelebrating ? L.text('easter_egg.arrived') : '',
-      revealsExactCountdown: false,
-    })
+    Column({ space: 0 }) {
+      Row({ space: 6 }) {
+        Image(EventPresentation.categoryIcon(this.event.category))
+          .width(17).height(17)
+          .fillColor(EventPresentation.categoryColor(this.event.category))
+        Text(EventPresentation.categoryLabel(this.event.category))
+          .fontSize(12).fontWeight(FontWeight.Bold)
+          .fontColor(EventPresentation.categoryColor(this.event.category))
+      }
+      .width('100%')
+      .margin({ bottom: 12 })
+      Text(this.event.title)
+        .fontSize(28)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(AppTheme.primaryText)
+        .width('100%')
+        .textAlign(TextAlign.Start)
+      Text(L.text('detail.repeat.' + (this.event.recurrence ?? 'yearly')))
+        .fontSize(12)
+        .fontColor(AppTheme.secondaryText)
+        .width('100%')
+        .textAlign(TextAlign.Start)
+        .margin({ top: 7, bottom: 20 })
+      Row({ space: 8 }) {
+        Text(this.heroCountdown())
+          .fontSize(CountdownCalculator.daysUntil(this.event.nextOccurrence) > 2 && CountdownCalculator.daysUntil(this.event.nextOccurrence) <= 999 ? 76 : 36)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(EventPresentation.categoryColor(this.event.category))
+        if (CountdownCalculator.daysUntil(this.event.nextOccurrence) > 2 && CountdownCalculator.daysUntil(this.event.nextOccurrence) <= 999) {
+          Text(L.text('countdown.day.unit'))
+            .fontSize(16)
+            .fontColor(AppTheme.secondaryText)
+            .margin({ top: 32 })
+        }
+      }
+      .justifyContent(FlexAlign.Start)
+      .width('100%')
+      Text(EventPresentation.compactDate(this.event.nextOccurrence, this.event.dateCalendar))
+        .fontSize(13)
+        .fontColor(AppTheme.secondaryText)
+        .width('100%')
+        .textAlign(TextAlign.Start)
+        .margin({ top: 4 })
+    }
+      .padding({ left: 20, right: 20, top: 24, bottom: 24 })
+      .width('100%')
+      .borderRadius(22)
+      .backgroundColor(EventPresentation.categoryBackground(this.event.category))
+      .accessibilityGroup(true)
+      .accessibilityText(EventPresentation.accessibilityLabel(this.event))
       .gesture(
         LongPressGesture({
           repeat: false,
@@ -166,6 +262,10 @@ struct EventDetailPage {
         })
       )
       .accessibilityDescription(this.countdownInteractionHint())
+  }
+
+  private heroCountdown(): string {
+    return this.isArrivalCelebrating ? L.text('easter_egg.arrived') : EventPresentation.countdownBadgeText(this.event);
   }
 
   @Builder
@@ -197,17 +297,17 @@ struct EventDetailPage {
           .width(14)
           .height(17)
           .borderRadius(8)
-          .backgroundColor('#DE7184')
+          .backgroundColor(AppTheme.warning)
         Row()
           .width(4)
           .height(4)
           .rotate({ angle: 45 })
-          .backgroundColor('#C45E73')
+          .backgroundColor(AppTheme.warning)
         Row()
           .width(1)
           .height(8)
           .rotate({ angle: 12 })
-          .backgroundColor('#A9878F')
+          .backgroundColor(AppTheme.secondaryText)
       }
       .width(18)
       .height(30)
@@ -304,98 +404,73 @@ struct EventDetailPage {
 
   @Builder
   private navigationBar() {
-    Row({ space: 14 }) {
-      Button('\u2039')
-        .fontSize(30)
-        .fontColor(AppTheme.primaryText)
-        .width(42)
-        .height(42)
-        .borderRadius(21)
-        .backgroundColor(AppTheme.cardBackground)
-        .onClick(() => {
-          router.back();
-        })
-        .accessibilityText(L.text('action.done'))
-
-      Column({ space: 2 }) {
-        Text(L.text('detail.title'))
-          .fontSize(24)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(AppTheme.primaryText)
-        Text(L.text('app.subtitle'))
-          .fontSize(12)
-          .fontColor(AppTheme.tertiaryText)
-      }
-      .alignItems(HorizontalAlign.Start)
-
-      Blank()
-
-      Button(L.text('action.edit'))
-        .fontSize(13)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(this.hasEvent && !this.isMutating ? AppTheme.brand : AppTheme.disabledText)
-        .height(38)
-        .padding({ left: 14, right: 14 })
-        .borderRadius(19)
-        .backgroundColor(this.hasEvent && !this.isMutating ? AppTheme.brandSoft : AppTheme.disabledBackground)
-        .enabled(this.hasEvent && !this.isMutating)
-        .onClick(() => {
-          if (this.hasEvent && !this.isMutating) {
-            router.pushUrl({ url: 'pages/EditEventPage', params: { eventID: this.event.id } });
-          }
-        })
-    }
-    .width('100%')
-    .height(80)
-    .padding({ left: AppTheme.pagePadding, right: AppTheme.pagePadding })
+    AppPageHeader({
+      title: L.text('detail.title'),
+      actionText: L.text('action.edit'),
+      accent: EventPresentation.categoryColor(this.event.category),
+      accentSoft: EventPresentation.categoryBackground(this.event.category),
+      actionEnabled: this.hasEvent && !this.isMutating,
+      onAction: () => { router.pushUrl({ url: 'pages/EditEventPage', params: { eventID: this.event.id } }); },
+      onBack: () => { router.back(); },
+    })
   }
 
   @Builder
   private infoSection() {
-    Column({ space: 14 }) {
-      Column({ space: 8 }) {
-        this.infoSectionTitle(L.text('detail.basic_info'))
-
-        Column() {
-          this.infoRow(L.text('detail.category'), EventPresentation.categoryLabel(this.event.category))
-          this.divider()
-          this.infoRow(L.text('detail.original_date'), this.originalDateText(), true)
-          this.divider()
-          this.infoRow(L.text('detail.next_date'), this.nextOccurrenceText(), true)
-          this.divider()
-          this.infoRow(L.text('detail.repeat'), L.text('detail.repeat.yearly'))
-        }
-        .width('100%')
-        .borderRadius(AppTheme.cardRadius)
-        .backgroundColor(AppTheme.cardBackground)
+    Column({ space: 22 }) {
+      Row({ space: 20 }) {
+        this.dateRecord(L.text('detail.next_date'), this.event.nextOccurrence)
+        this.dateRecord(L.text('detail.original_date'), this.event.originalDate)
       }
+      .padding({ top: 2, bottom: 18 })
       .width('100%')
+      .border({ width: { bottom: 1 }, color: AppTheme.separator })
 
-      Column({ space: 8 }) {
+      Column({ space: 4 }) {
         this.infoSectionTitle(L.text('detail.settings'))
-
-        Column() {
-          this.infoRow(L.text('detail.reminder'), EventPresentation.reminderLabel(this.event.reminderLeadTime))
-          this.divider()
-          this.infoRow(L.text('detail.calendar'), EventPresentation.calendarLabel(this.event.dateCalendar))
-          this.divider()
-          this.infoRow(L.text('detail.source'), EventPresentation.sourceLabel(this.event.source))
-        }
-        .width('100%')
-        .borderRadius(AppTheme.cardRadius)
-        .backgroundColor(AppTheme.cardBackground)
+        this.infoRow(L.text('detail.reminder'), EventPresentation.reminderLabel(this.event.reminderLeadTime))
+        this.infoRow(L.text('detail.calendar'), EventPresentation.calendarLabel(this.event.dateCalendar))
+        this.infoRow(L.text('detail.source'), EventPresentation.sourceLabel(this.event.source))
       }
       .width('100%')
     }
     .width('100%')
+  }
+
+  @Builder
+  private dateRecord(label: string, date: Date) {
+    Column({ space: 8 }) {
+      Column({ space: 6 }) {
+        Text(label)
+          .fontSize(12)
+          .fontColor(AppTheme.secondaryText)
+        Text(EventPresentation.yearText(date))
+          .fontSize(12)
+          .fontColor(AppTheme.secondaryText)
+      }
+      .alignItems(HorizontalAlign.Start)
+      .width('100%')
+      Text(EventPresentation.compactDate(date, this.event.dateCalendar))
+        .fontSize(16)
+        .fontWeight(FontWeight.Medium)
+        .fontColor(AppTheme.primaryText)
+      if (this.event.dateCalendar === EventDateCalendar.Lunar) {
+        Text(`${L.calendarLabel(EventDateCalendar.Gregorian)} · ${EventPresentation.monthDayText(date)}`)
+          .fontSize(12)
+          .fontColor(AppTheme.secondaryText)
+      }
+    }
+    .alignItems(HorizontalAlign.Start)
+    .layoutWeight(1)
+    .padding({ top: 2, bottom: 2 })
   }
 
   @Builder
   private infoSectionTitle(title: string) {
     Text(title)
-      .fontSize(16)
-      .fontWeight(FontWeight.Bold)
-      .fontColor(AppTheme.primaryText)
+      .fontSize(12)
+      .fontWeight(FontWeight.Medium)
+      .fontColor(AppTheme.secondaryText)
       .width('100%')
       .padding({ left: 2 })
   }
@@ -410,7 +485,8 @@ struct EventDetailPage {
         .padding({ left: 2 })
 
       Row({ space: 12 }) {
-        Image($r('app.media.form_note'))
+        Image($r('app.media.ui_note'))
+          .fillColor(AppTheme.brand)
           .width(36)
           .height(36)
           .padding(9)
@@ -432,19 +508,14 @@ struct EventDetailPage {
 
   @Builder
   private actionsSection() {
-    Column() {
-      this.actionRow(
-        L.text('action.delete'),
-        '×',
-        AppTheme.danger,
-        () => {
-        this.showDeleteDialog();
-        },
-      )
-    }
-    .width('100%')
-    .borderRadius(AppTheme.cardRadius)
-    .backgroundColor(AppTheme.cardBackground)
+    Button(L.text('action.delete'))
+      .width('100%')
+      .height(48)
+      .fontSize(13)
+      .fontColor(AppTheme.danger)
+      .backgroundColor(Color.Transparent)
+      .enabled(!this.isMutating)
+      .onClick(() => { this.showDeleteDialog(); })
   }
 
   @Builder
@@ -454,96 +525,35 @@ struct EventDetailPage {
     allowsMultipleLines: boolean = false,
   ) {
     Row({ space: 12 }) {
-      this.infoIconView(label)
 
-      Text(label)
-        .fontSize(14)
-        .fontWeight(FontWeight.Medium)
-        .fontColor(AppTheme.primaryText)
-        .maxLines(1)
-
-      Blank()
-
-      Text(value)
-        .fontSize(13)
-        .fontColor(AppTheme.secondaryText)
-        .textAlign(TextAlign.End)
-        .width(allowsMultipleLines ? 166 : 140)
-        .maxLines(allowsMultipleLines ? 2 : 1)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
+      if (allowsMultipleLines) {
+        Column({ space: 6 }) {
+          Text(label)
+            .fontSize(12)
+            .fontColor(AppTheme.secondaryText)
+          Text(value)
+            .fontSize(15)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(AppTheme.primaryText)
+        }
+        .alignItems(HorizontalAlign.Start)
+        .layoutWeight(1)
+      } else {
+        Text(label)
+          .fontSize(14)
+          .fontColor(AppTheme.secondaryText)
+          .layoutWeight(1)
+        Text(value)
+          .fontSize(14)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(AppTheme.primaryText)
+          .textAlign(TextAlign.End)
+          .layoutWeight(1)
+      }
     }
     .width('100%')
-    .height(allowsMultipleLines ? 66 : 56)
-    .padding({ left: 14, right: 14 })
-  }
-
-  @Builder
-  private infoIconView(label: string) {
-    if (label === L.text('detail.category')) {
-      Text(EventPresentation.categorySymbol(this.event.category))
-        .fontSize(21)
-        .width(36)
-        .height(36)
-        .textAlign(TextAlign.Center)
-        .borderRadius(18)
-        .backgroundColor(this.categorySoftColor())
-    } else {
-      Image(this.infoIcon(label))
-        .width(36)
-        .height(36)
-        .padding(9)
-        .borderRadius(18)
-        .backgroundColor(AppTheme.brandSoft)
-    }
-  }
-
-  private infoIcon(label: string): Resource {
-    if (label === L.text('detail.reminder')) {
-      return $r('app.media.form_bell');
-    }
-    if (label === L.text('detail.original_date') ||
-      label === L.text('detail.next_date') ||
-      label === L.text('detail.calendar')) {
-      return $r('app.media.form_calendar');
-    }
-    return $r('app.media.form_sync_calendar');
-  }
-
-  private categorySoftColor(): ResourceColor {
-    switch (this.event.category) {
-      case EventCategory.Birthday:
-        return AppTheme.warningSoft;
-      case EventCategory.Anniversary:
-        return AppTheme.dangerSoft;
-      case EventCategory.Custom:
-        return AppTheme.brandSoft;
-    }
-  }
-
-  @Builder
-  private actionRow(title: string, symbol: string, tint: ResourceColor, action: () => void) {
-    Row({ space: 12 }) {
-      Text('\u00D7')
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(this.isMutating ? AppTheme.disabledText : tint)
-        .width(36)
-        .height(36)
-        .textAlign(TextAlign.Center)
-        .borderRadius(18)
-        .backgroundColor(AppTheme.dangerSoft)
-
-      Text(title)
-        .fontSize(14)
-        .fontWeight(FontWeight.Medium)
-        .fontColor(this.isMutating ? AppTheme.disabledText : tint)
-
-      Blank()
-    }
-    .width('100%')
-    .height(56)
-    .padding({ left: 14, right: 14 })
-    .onClick(action)
+    .constraintSize({ minHeight: allowsMultipleLines ? 66 : 56 })
+    .padding({ left: 14, right: 14, top: 12, bottom: 12 })
   }
 
   @Builder
@@ -566,6 +576,7 @@ struct EventDetailPage {
     }
 
     await this.viewModel.load();
+    const reminderAuthorized = await ReminderService.isAuthorized();
 
     if (revision !== this.loadRevision) {
       return;
@@ -581,6 +592,7 @@ struct EventDetailPage {
     if (this.hasEvent && this.event.id !== matched.id) {
       this.resetEasterEggPresentation();
     }
+    this.reminderUnauthorized = !reminderAuthorized;
     this.event = matched;
     console.info(`Countdown detail loaded eventID=${matched.id}, title=${matched.title}`);
     this.currentEventID = matched.id;
@@ -648,43 +660,6 @@ struct EventDetailPage {
     }
 
     return L.text('dialog.delete.local.message');
-  }
-
-  private nextOccurrenceText(): string {
-    if (this.event.dateCalendar === EventDateCalendar.Lunar) {
-      const lunarDate = EventPresentation.monthDayText(
-        this.event.nextOccurrence,
-        EventDateCalendar.Lunar,
-      );
-      const gregorianDate = EventPresentation.monthDayText(
-        this.event.nextOccurrence,
-        EventDateCalendar.Gregorian,
-      );
-      return `${EventPresentation.yearText(this.event.nextOccurrence)} ${L.text('calendar.lunar')} ${lunarDate}\n` +
-        gregorianDate;
-    }
-
-    return `${EventPresentation.yearText(this.event.nextOccurrence)} ` +
-      EventPresentation.displayDate(this.event.nextOccurrence, this.event.dateCalendar);
-  }
-
-  private originalDateText(): string {
-    if (this.event.dateCalendar === EventDateCalendar.Lunar) {
-      const lunarDate = EventPresentation.monthDayText(
-        this.event.originalDate,
-        EventDateCalendar.Lunar,
-      );
-      const gregorianDate = EventPresentation.monthDayText(
-        this.event.originalDate,
-        EventDateCalendar.Gregorian,
-      );
-      return `${EventPresentation.yearText(this.event.originalDate)} ${L.text('calendar.lunar')} ${lunarDate}\n` +
-        gregorianDate;
-    }
-
-    const year = EventPresentation.yearText(this.event.originalDate);
-    const date = EventPresentation.displayDate(this.event.originalDate, this.event.dateCalendar);
-    return `${year} ${date}`;
   }
 
   private hasNotes(): boolean {

@@ -130,6 +130,40 @@ enum EventSource: String, Codable, Sendable {
     case importedCalendar = "importedCalendar"
 }
 
+enum EventRecurrence: String, Codable, CaseIterable, Sendable {
+    case yearly, monthly, weekly
+
+    var displayName: String {
+        NSLocalizedString("recurrence.\(rawValue)", comment: "Event repetition")
+    }
+}
+
+enum CalendarImportRules {
+    static func validatedAnchor(
+        metadataDate: Date?, metadataRecurrence: EventRecurrence?,
+        sourceOccurrence: Date, dateCalendar: EventDateCalendar,
+        recurrence: EventRecurrence, referenceDate: Date,
+        calendar: Calendar = .current
+    ) -> Date {
+        guard let metadataDate, metadataDate.timeIntervalSinceReferenceDate.isFinite,
+              metadataRecurrence == recurrence else { return sourceOccurrence }
+        let predicted = CountdownEvent.nextOccurrence(from: metadataDate, dateCalendar: dateCalendar,
+            recurrence: recurrence, referenceDate: referenceDate, calendar: calendar)
+        // Source instances are authoritative. Calendar edits do not rewrite the
+        // URL we previously attached to the series.
+        return calendar.isDate(predicted, inSameDayAs: sourceOccurrence) ? metadataDate : sourceOccurrence
+    }
+}
+
+enum EventNotificationIdentifiers {
+    static func matching(_ identifiers: [String], eventIdentifiers: [String]? = nil) -> [String] {
+        identifiers.filter { identifier in
+            guard let eventIdentifiers else { return identifier.hasPrefix("countdown-event-") }
+            return eventIdentifiers.contains { identifier == $0 || identifier.hasPrefix($0 + "-") }
+        }
+    }
+}
+
 enum CountdownSpecialNumber: Int, Equatable, Sendable {
     case answer = 42
     case orbit = 365
@@ -273,6 +307,7 @@ struct CountdownEvent: Codable, Identifiable, Hashable, Sendable {
     var originalDate: Date     // raw date stored in calendar (year may be arbitrary)
     var category: EventCategory
     var dateCalendar: EventDateCalendar
+    var recurrence: EventRecurrence
     var source: EventSource
     var isIgnored: Bool
     var calendarEventID: String?
@@ -287,6 +322,7 @@ struct CountdownEvent: Codable, Identifiable, Hashable, Sendable {
         originalDate: Date,
         category: EventCategory,
         dateCalendar: EventDateCalendar = .gregorian,
+        recurrence: EventRecurrence = .yearly,
         source: EventSource = .local,
         isIgnored: Bool = false,
         calendarEventID: String? = nil,
@@ -300,6 +336,7 @@ struct CountdownEvent: Codable, Identifiable, Hashable, Sendable {
         self.originalDate = originalDate
         self.category = category
         self.dateCalendar = dateCalendar
+        self.recurrence = recurrence
         self.source = source
         self.isIgnored = isIgnored
         self.calendarEventID = calendarEventID
@@ -315,6 +352,7 @@ struct CountdownEvent: Codable, Identifiable, Hashable, Sendable {
         case originalDate
         case category
         case dateCalendar
+        case recurrence
         case source
         case isIgnored
         case calendarEventID
@@ -330,6 +368,7 @@ struct CountdownEvent: Codable, Identifiable, Hashable, Sendable {
         nextOccurrence = try container.decode(Date.self, forKey: .nextOccurrence)
         originalDate = try container.decode(Date.self, forKey: .originalDate)
         category = try container.decode(EventCategory.self, forKey: .category)
+        recurrence = try container.decodeIfPresent(EventRecurrence.self, forKey: .recurrence) ?? .yearly
         let decodedDateCalendar = try container.decodeIfPresent(EventDateCalendar.self, forKey: .dateCalendar) ?? .gregorian
         let decodedCalendarEventID = try container.decodeIfPresent(String.self, forKey: .calendarEventID)
         source = try container.decodeIfPresent(EventSource.self, forKey: .source) ?? .legacySource(
@@ -360,13 +399,62 @@ struct CountdownEvent: Codable, Identifiable, Hashable, Sendable {
     /// Returns a copy whose next occurrence is recalculated from the original annual date.
     func normalizedForDisplay(referenceDate: Date = Date(), calendar: Calendar = .current) -> CountdownEvent {
         var copy = self
-        copy.nextOccurrence = Self.nextAnnualOccurrence(
+        copy.nextOccurrence = Self.nextOccurrence(
             from: originalDate,
             dateCalendar: dateCalendar,
+            recurrence: recurrence,
             referenceDate: referenceDate,
             calendar: calendar
         )
         return copy
+    }
+
+    static func nextOccurrence(
+        from date: Date,
+        dateCalendar: EventDateCalendar = .gregorian,
+        recurrence: EventRecurrence = .yearly,
+        referenceDate: Date = Date(),
+        calendar: Calendar = .current
+    ) -> Date {
+        var solar = Calendar(identifier: .gregorian)
+        solar.timeZone = calendar.timeZone
+        let original = solar.startOfDay(for: date)
+        let reference = solar.startOfDay(for: referenceDate)
+        if original >= reference { return original }
+        if recurrence == .yearly {
+            return nextAnnualOccurrence(from: original, dateCalendar: dateCalendar, referenceDate: reference, calendar: solar)
+        }
+        if recurrence == .weekly {
+            let elapsed = solar.dateComponents([.day], from: original, to: reference).day ?? 0
+            return solar.date(byAdding: .day, value: ((elapsed + 6) / 7) * 7, to: original) ?? original
+        }
+        var matching = dateCalendar.foundationCalendar
+        matching.timeZone = calendar.timeZone
+        let targetDay = matching.component(.day, from: original)
+        // Searching actual dates includes leap lunar months and skips months
+        // lacking this day instead of Foundation's end-of-month adjustment.
+        for offset in 0...400 {
+            guard let candidate = solar.date(byAdding: .day, value: offset, to: reference) else { continue }
+            if matching.component(.day, from: candidate) == targetDay { return candidate }
+        }
+        return original
+    }
+
+    func reminderDates(count: Int, referenceDate: Date = Date(), calendar: Calendar = .current) -> [Date] {
+        guard reminderLeadTime != .none, count > 0 else { return [] }
+        var dates: [Date] = []
+        var reference = referenceDate
+        for _ in 0..<(count + 12) {
+            let occurrence = Self.nextOccurrence(from: originalDate, dateCalendar: dateCalendar,
+                recurrence: recurrence, referenceDate: reference, calendar: calendar)
+            guard let reminderDay = calendar.date(byAdding: .day, value: -reminderLeadTime.rawValue, to: occurrence),
+                  let reminder = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: reminderDay),
+                  let next = calendar.date(byAdding: .day, value: 1, to: occurrence), next > reference else { break }
+            if reminder > referenceDate { dates.append(reminder) }
+            if dates.count == count { break }
+            reference = next
+        }
+        return dates
     }
 
     /// Given any date, return the next upcoming same month/day occurrence.
@@ -376,6 +464,8 @@ struct CountdownEvent: Codable, Identifiable, Hashable, Sendable {
         referenceDate: Date = Date(),
         calendar: Calendar = .current
     ) -> Date {
+        let originalDay = calendar.startOfDay(for: date)
+        if originalDay >= calendar.startOfDay(for: referenceDate) { return originalDay }
         guard dateCalendar == .gregorian else {
             return nextLunarOccurrence(
                 from: date,
@@ -393,6 +483,8 @@ struct CountdownEvent: Codable, Identifiable, Hashable, Sendable {
         for year in referenceYear...(referenceYear + 8) {
             components.year = year
             guard let candidate = calendar.date(from: components) else { continue }
+            let actual = calendar.dateComponents([.year, .month, .day], from: candidate)
+            guard actual.year == year, actual.month == components.month, actual.day == components.day else { continue }
             if candidate >= referenceDay {
                 return candidate
             }
@@ -402,7 +494,11 @@ struct CountdownEvent: Codable, Identifiable, Hashable, Sendable {
     }
 
     func matchesSameAnnualEvent(as other: CountdownEvent, calendar: Calendar = .current) -> Bool {
-        guard dateCalendar == other.dateCalendar else { return false }
+        guard dateCalendar == other.dateCalendar, recurrence == other.recurrence else { return false }
+        if recurrence != .yearly {
+            return normalizedTitle == other.normalizedTitle && category == other.category &&
+                calendar.isDate(originalDate, inSameDayAs: other.originalDate)
+        }
 
         var matchingCalendar = dateCalendar.foundationCalendar
         matchingCalendar.timeZone = calendar.timeZone

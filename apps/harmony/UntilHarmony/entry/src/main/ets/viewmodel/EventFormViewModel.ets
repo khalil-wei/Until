@@ -3,6 +3,7 @@ import {
   CountdownEventFactory,
   EventCategory,
   EventDateCalendar,
+  EventRecurrence,
   EventSource,
   ReminderLeadTime,
 } from '../model/CountdownEvent';
@@ -14,6 +15,7 @@ export interface EventFormState {
   title: string;
   category: EventCategory;
   dateCalendar: EventDateCalendar;
+  recurrence: EventRecurrence;
   dateText: string;
   hasConfirmedDate: boolean;
   notes: string;
@@ -32,6 +34,7 @@ export class EventFormViewModel {
       title: '',
       category,
       dateCalendar: EventDateCalendar.Gregorian,
+      recurrence: EventRecurrence.Yearly,
       dateText: EventFormViewModel.dateText(new Date()),
       hasConfirmedDate: false,
       notes: '',
@@ -46,6 +49,7 @@ export class EventFormViewModel {
       title: event.title,
       category: event.category,
       dateCalendar: event.dateCalendar,
+      recurrence: event.recurrence ?? EventRecurrence.Yearly,
       dateText: EventFormViewModel.dateText(event.originalDate),
       hasConfirmedDate: true,
       notes: event.notes ?? '',
@@ -90,9 +94,10 @@ export class EventFormViewModel {
     }
 
     const source = state.shouldSyncToCalendar ? EventSource.AppCalendar : EventSource.Local;
-    const nextOccurrence = CountdownCalculator.nextAnnualOccurrence(
+    const nextOccurrence = CountdownCalculator.nextOccurrence(
       originalDate,
       state.dateCalendar,
+      state.recurrence,
     );
 
     return CountdownEventFactory.create({
@@ -102,6 +107,7 @@ export class EventFormViewModel {
       nextOccurrence,
       category: state.category,
       dateCalendar: state.dateCalendar,
+      recurrence: state.recurrence,
       source,
       calendarEventID: existingEvent?.calendarEventID,
       calendarItemID: existingEvent?.calendarItemID,

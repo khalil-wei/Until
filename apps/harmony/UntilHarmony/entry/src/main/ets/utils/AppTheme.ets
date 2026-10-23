@@ -22,16 +22,22 @@ export class AppTheme {
   static readonly disabledBackground: ResourceColor = $r('app.color.disabled_background');
   static readonly disabledText: ResourceColor = $r('app.color.disabled_text');
 
+  static readonly heroBackground: ResourceColor = $r('app.color.hero_background');
+  static readonly heroText: ResourceColor = $r('app.color.hero_text');
+  static readonly heroSecondary: ResourceColor = $r('app.color.hero_secondary');
+  static readonly heroAccent: ResourceColor = $r('app.color.hero_accent');
+
+  static readonly minimumTouchSize: number = 44;
   static readonly pagePadding: number = 20;
   static readonly sectionSpacing: number = 14;
-  static readonly cardRadius: number = 22;
+  static readonly cardRadius: number = 20;
   static readonly controlRadius: number = 14;
   static readonly navigationHeight: number = 80;
-  static readonly navigationTitleSize: number = 24;
+  static readonly navigationTitleSize: number = 20;
   static readonly sectionTitleSize: number = 16;
   static readonly bodyTextSize: number = 14;
   static readonly supportingTextSize: number = 12;
-  static readonly captionTextSize: number = 11;
+  static readonly captionTextSize: number = 12;
   static readonly primaryActionHeight: number = 56;
-  static readonly primaryActionRadius: number = 20;
+  static readonly primaryActionRadius: number = 16;
 }

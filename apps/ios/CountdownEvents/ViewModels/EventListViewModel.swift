@@ -95,6 +95,7 @@ final class EventListViewModel: ObservableObject {
         date: Date,
         category: EventCategory,
         dateCalendar: EventDateCalendar = .gregorian,
+        recurrence: EventRecurrence = .yearly,
         notes: String?,
         reminderLeadTime: ReminderLeadTime = .none
     ) async {
@@ -102,16 +103,18 @@ final class EventListViewModel: ObservableObject {
             let identifier = try await calendarService.createEvent(
                 title: title,
                 date: date,
+                recurrence: recurrence,
                 category: category,
                 notes: notes
             )
-            let nextDate = CalendarService.nextAnnualOccurrence(from: date, dateCalendar: dateCalendar)
+            let nextDate = CountdownEvent.nextOccurrence(from: date, dateCalendar: dateCalendar, recurrence: recurrence)
             let event = CountdownEvent(
                 title: title,
                 nextOccurrence: nextDate,
                 originalDate: date,
                 category: category,
                 dateCalendar: dateCalendar,
+                recurrence: recurrence,
                 source: .appCalendar,
                 calendarEventID: identifier,
                 notes: notes,
@@ -134,16 +137,18 @@ final class EventListViewModel: ObservableObject {
         date: Date,
         category: EventCategory,
         dateCalendar: EventDateCalendar = .gregorian,
+        recurrence: EventRecurrence = .yearly,
         notes: String?,
         reminderLeadTime: ReminderLeadTime = .none
     ) {
-        let nextDate = CalendarService.nextAnnualOccurrence(from: date, dateCalendar: dateCalendar)
+        let nextDate = CountdownEvent.nextOccurrence(from: date, dateCalendar: dateCalendar, recurrence: recurrence)
         let event = CountdownEvent(
             title: title,
             nextOccurrence: nextDate,
             originalDate: date,
             category: category,
             dateCalendar: dateCalendar,
+            recurrence: recurrence,
             calendarEventID: nil,
             notes: notes,
             reminderLeadTime: reminderLeadTime
@@ -161,11 +166,12 @@ final class EventListViewModel: ObservableObject {
         date: Date,
         category: EventCategory,
         dateCalendar: EventDateCalendar,
+        recurrence: EventRecurrence,
         syncToCalendar: Bool,
         notes: String?,
         reminderLeadTime: ReminderLeadTime
     ) async {
-        let shouldSync = syncToCalendar && authorizationStatus == .fullAccess && dateCalendar == .gregorian
+        let shouldSync = syncToCalendar && authorizationStatus == .fullAccess && dateCalendar == .gregorian && event.source != .importedCalendar
         var calendarEventID: String?
         var source: EventSource = shouldSync
             ? (event.source == .importedCalendar ? .importedCalendar : .appCalendar)
@@ -178,6 +184,7 @@ final class EventListViewModel: ObservableObject {
                         identifier: existingID,
                         title: title,
                         date: date,
+                        recurrence: recurrence,
                         category: category,
                         notes: notes
                     )
@@ -185,6 +192,7 @@ final class EventListViewModel: ObservableObject {
                     calendarEventID = try await calendarService.createEvent(
                         title: title,
                         date: date,
+                        recurrence: recurrence,
                         category: category,
                         notes: notes
                     )
@@ -197,7 +205,7 @@ final class EventListViewModel: ObservableObject {
                 source = .local
             }
 
-            let nextDate = CalendarService.nextAnnualOccurrence(from: date, dateCalendar: dateCalendar)
+            let nextDate = CountdownEvent.nextOccurrence(from: date, dateCalendar: dateCalendar, recurrence: recurrence)
             let updatedEvent = CountdownEvent(
                 id: event.id,
                 title: title,
@@ -205,6 +213,7 @@ final class EventListViewModel: ObservableObject {
                 originalDate: date,
                 category: category,
                 dateCalendar: dateCalendar,
+                recurrence: recurrence,
                 source: source,
                 calendarEventID: calendarEventID,
                 notes: notes,
@@ -313,10 +322,27 @@ final class EventListViewModel: ObservableObject {
     }
 }
 
+@MainActor
 private enum NotificationService {
+    private static var schedulingTask: Task<Void, Never>?
+
     static func rescheduleNotifications(for events: [CountdownEvent]) async {
+        let previous = schedulingTask
+        let task = Task {
+            await previous?.value
+            await replaceNotifications(for: events)
+        }
+        schedulingTask = task
+        await task.value
+    }
+
+    private static func replaceNotifications(for events: [CountdownEvent]) async {
         let center = UNUserNotificationCenter.current()
         let identifiers = events.map(\.notificationIdentifier)
+        let pending = await center.pendingNotificationRequests()
+        let delivered = await center.deliveredNotifications()
+        center.removePendingNotificationRequests(withIdentifiers: EventNotificationIdentifiers.matching(pending.map(\.identifier)))
+        center.removeDeliveredNotifications(withIdentifiers: EventNotificationIdentifiers.matching(delivered.map { $0.request.identifier }))
 
         if !identifiers.isEmpty {
             center.removePendingNotificationRequests(withIdentifiers: identifiers)
@@ -331,8 +357,12 @@ private enum NotificationService {
             return
         }
 
-        for event in activeReminderEvents {
-            await scheduleNotification(for: event)
+        let now = Date()
+        let candidates = activeReminderEvents.flatMap { event in
+            event.reminderDates(count: 64, referenceDate: now).map { (event: event, date: $0) }
+        }.sorted { $0.date < $1.date }.prefix(64)
+        for candidate in candidates {
+            await scheduleNotification(for: candidate.event, reminderDate: candidate.date)
         }
     }
 
@@ -343,6 +373,17 @@ private enum NotificationService {
         let center = UNUserNotificationCenter.current()
         center.removePendingNotificationRequests(withIdentifiers: identifiers)
         center.removeDeliveredNotifications(withIdentifiers: identifiers)
+        let previous = schedulingTask
+        let task = Task {
+            await previous?.value
+            let pending = await center.pendingNotificationRequests()
+            let delivered = await center.deliveredNotifications()
+            center.removePendingNotificationRequests(withIdentifiers:
+                EventNotificationIdentifiers.matching(pending.map(\.identifier), eventIdentifiers: identifiers))
+            center.removeDeliveredNotifications(withIdentifiers:
+                EventNotificationIdentifiers.matching(delivered.map { $0.request.identifier }, eventIdentifiers: identifiers))
+        }
+        schedulingTask = task
     }
 
     private static func ensureAuthorization() async -> Bool {
@@ -373,15 +414,12 @@ private enum NotificationService {
         }
     }
 
-    private static func scheduleNotification(for event: CountdownEvent) async {
-        guard
-            let reminderDate = reminderDate(for: event),
-            reminderDate > Date()
-        else {
-            return
-        }
+    private static func scheduleNotification(for event: CountdownEvent, reminderDate: Date) async {
+        guard reminderDate > Date() else { return }
 
-        var components = Calendar.current.dateComponents([.year, .month, .day], from: reminderDate)
+        let calendar = Calendar(identifier: .gregorian)
+        var components = calendar.dateComponents([.year, .month, .day], from: reminderDate)
+        components.calendar = calendar
         components.hour = 9
         components.minute = 0
 
@@ -390,12 +428,13 @@ private enum NotificationService {
         content.body = String.localizedStringWithFormat(
             NSLocalizedString("notification.body", comment: "Local notification body for an upcoming event"),
             event.title,
-            event.countdownLabel
+            event.reminderLeadTime == .sameDay ? String(localized: "countdown.today") :
+                String.localizedStringWithFormat(NSLocalizedString("countdown.days.after", comment: "Reminder lead time"), event.reminderLeadTime.rawValue)
         )
         content.sound = .default
 
         let request = UNNotificationRequest(
-            identifier: event.notificationIdentifier,
+            identifier: "\(event.notificationIdentifier)-\(Int(reminderDate.timeIntervalSince1970))",
             content: content,
             trigger: UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         )
@@ -403,24 +442,6 @@ private enum NotificationService {
         try? await UNUserNotificationCenter.current().add(request)
     }
 
-    private static func reminderDate(for event: CountdownEvent) -> Date? {
-        guard event.reminderLeadTime != .none else { return nil }
-
-        let calendar = Calendar.current
-        let eventDay = calendar.startOfDay(for: event.nextOccurrence)
-        guard let reminderDay = calendar.date(
-            byAdding: .day,
-            value: -event.reminderLeadTime.rawValue,
-            to: eventDay
-        ) else {
-            return nil
-        }
-
-        var components = calendar.dateComponents([.year, .month, .day], from: reminderDay)
-        components.hour = 9
-        components.minute = 0
-        return calendar.date(from: components)
-    }
 }
 
 private extension CountdownEvent {
@@ -440,6 +461,7 @@ private extension CountdownEvent {
             originalDate: originalDate,
             category: category,
             dateCalendar: dateCalendar,
+            recurrence: recurrence,
             source: source,
             isIgnored: isIgnored,
             calendarEventID: calendarEventID,

@@ -8,6 +8,7 @@ import { calendarManager } from '@kit.CalendarKit';
 import {
   CountdownEvent,
   EventDateCalendar,
+  EventRecurrence,
   ReminderLeadTime,
 } from '../model/CountdownEvent';
 import {
@@ -18,7 +19,6 @@ const READ_CALENDAR_PERMISSION: Permissions = 'ohos.permission.READ_CALENDAR';
 const WRITE_CALENDAR_PERMISSION: Permissions = 'ohos.permission.WRITE_CALENDAR';
 const CALENDAR_ACCOUNT_NAME = 'until-countdown-calendar';
 const CALENDAR_ACCOUNT_DISPLAY_NAME = '待到';
-const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
 
 export class HarmonyCalendarService implements CalendarService {
   private context: common.Context;
@@ -193,7 +193,9 @@ export class HarmonyCalendarService implements CalendarService {
 
   private calendarEventFromCountdown(event: CountdownEvent): calendarManager.Event {
     const startTime = this.startOfDay(event.originalDate).getTime();
-    const endTime = startTime + DAY_IN_MILLISECONDS;
+    const endDay = this.startOfDay(event.originalDate);
+    endDay.setDate(endDay.getDate() + 1);
+    const endTime = endDay.getTime();
     const calendarEvent: calendarManager.Event = {
       type: calendarManager.EventType.NORMAL,
       title: event.title,
@@ -202,9 +204,13 @@ export class HarmonyCalendarService implements CalendarService {
       isAllDay: true,
       description: event.notes,
       identifier: `until-${event.id}`,
-      isLunar: event.dateCalendar === EventDateCalendar.Lunar,
+      isLunar: event.dateCalendar === EventDateCalendar.Lunar && event.recurrence !== EventRecurrence.Weekly,
       recurrenceRule: {
-        recurrenceFrequency: calendarManager.RecurrenceFrequency.YEARLY,
+        recurrenceFrequency: event.recurrence === EventRecurrence.Monthly
+          ? calendarManager.RecurrenceFrequency.MONTHLY
+          : event.recurrence === EventRecurrence.Weekly
+            ? calendarManager.RecurrenceFrequency.WEEKLY : calendarManager.RecurrenceFrequency.YEARLY,
+        interval: 1,
       },
     };
     const reminderMinutes = this.reminderMinutes(event.reminderLeadTime);

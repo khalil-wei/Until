@@ -45,8 +45,8 @@
 "备注（可选）" = "Notes (optional)";
 "添加备注…" = "Add notes...";
 "同步到日历 App" = "Sync to Calendar";
-"开启后将在「倒计时提醒」日历中创建每年重复的日程。" = "Creates a yearly recurring event in the \"Countdown Reminders\" calendar.";
-"开启后将在「待到提醒」日历中创建每年重复的日程。" = "Creates a yearly recurring event in the \"Until Reminders\" calendar.";
+"开启后将在「倒计时提醒」日历中按所选规则创建重复日程。" = "Creates an event with the selected recurrence in the \"Countdown Reminders\" calendar.";
+"开启后将在「待到提醒」日历中按所选规则创建重复日程。" = "Creates an event with the selected recurrence in the \"Until Reminders\" calendar.";
 "当前没有完整日历权限，将仅保存为本地倒计时。" = "Full calendar access is not available. This will be saved as a local countdown only.";
 "新建倒计时" = "New Countdown";
 "新建日子" = "New Day";
@@ -85,14 +85,14 @@
 "add.date_calendar" = "Date Calendar";
 "add.section.date" = "Date";
 "add.date.select" = "Select Date";
-"add.lunar.helper" = "This date uses the lunar calendar and counts down to the same lunar month and day each year.";
-"add.lunar.selection_helper" = "Selected lunar date: %@. Countdown uses the same lunar month and day each year.";
+"add.lunar.helper" = "This date uses the lunar calendar and counts down according to the selected recurrence.";
+"add.lunar.selection_helper" = "Selected lunar date: %@. Countdown uses the selected recurrence.";
 "add.section.notes" = "Notes (optional)";
 "add.notes.placeholder" = "Add notes...";
 "add.sync_to_calendar" = "Sync to Calendar";
-"add.sync_footer" = "Creates a yearly recurring event in the \"Until Reminders\" calendar.";
+"add.sync_footer" = "Creates an event with the selected recurrence in the \"Until Reminders\" calendar.";
 "add.no_calendar_access_footer" = "Full calendar access is not available. This will be saved as a local countdown only.";
-"add.lunar.sync_footer" = "Lunar dates are saved locally and automatically converted to the next lunar occurrence each year.";
+"add.lunar.sync_footer" = "Lunar dates are saved locally and automatically converted to the next occurrence using the selected recurrence.";
 "add.imported_sync_footer" = "This event was imported from Calendar. Saving edits creates a local copy and ignores the imported event without changing Calendar.";
 "add.title" = "New Day";
 "edit.title" = "Edit Day";
@@ -147,3 +147,9 @@
 "widget.guide.step_two" = "Search for Until and choose a widget size.";
 "widget.guide.step_three" = "Touch and hold the added widget, then choose Edit Widget to set its event and theme.";
 "widget.guide.done" = "Done";
+
+"recurrence.title" = "Repeat";
+"recurrence.yearly" = "Yearly";
+"recurrence.monthly" = "Monthly";
+"recurrence.weekly" = "Weekly";
+"recurrence.footer" = "Monthly uses the same day in the selected calendar and skips months without that day. Weekly repeats every 7 days from the selected date.";

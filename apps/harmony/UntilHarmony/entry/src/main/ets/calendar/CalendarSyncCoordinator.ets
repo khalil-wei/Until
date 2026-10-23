@@ -118,6 +118,7 @@ export class CalendarSyncCoordinator {
       originalDate: event.originalDate,
       category: event.category,
       dateCalendar: event.dateCalendar,
+      recurrence: event.recurrence,
       source,
       isIgnored: event.isIgnored ?? false,
       calendarEventID,

@@ -41,7 +41,7 @@ export class CardTimelineProvider {
         return {
           id: event.id,
           title: event.title,
-          dateText: EventPresentation.displayDate(event.nextOccurrence, event.dateCalendar),
+          dateText: EventPresentation.compactDate(event.nextOccurrence, event.dateCalendar),
           countdownText: EventPresentation.countdownText(event, referenceDate),
           countdownBadgeText: EventPresentation.countdownBadgeText(event, referenceDate),
           countdownUnitText: L.text('countdown.future.unit'),
@@ -55,17 +55,17 @@ export class CardTimelineProvider {
 
   private static urgencyColor(days: number): string {
     if (days <= 0) {
-      return '#C44761';
+      return '#BE4C73';
     }
 
     if (days <= 7) {
-      return '#D47A20';
+      return '#A86024';
     }
 
     if (days <= 30) {
-      return '#5270C9';
+      return '#6660BD';
     }
 
-    return '#2F8E75';
+    return '#087F75';
   }
 }

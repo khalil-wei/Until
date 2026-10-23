@@ -15,6 +15,12 @@ export enum EventSource {
   ImportedCalendar = 'importedCalendar',
 }
 
+export enum EventRecurrence {
+  Yearly = 'yearly',
+  Monthly = 'monthly',
+  Weekly = 'weekly',
+}
+
 export enum ReminderLeadTime {
   None = -1,
   SameDay = 0,
@@ -37,6 +43,7 @@ export interface CountdownEvent {
   originalDate: Date;
   category: EventCategory;
   dateCalendar: EventDateCalendar;
+  recurrence?: EventRecurrence;
   source: EventSource;
   isIgnored?: boolean;
   calendarEventID?: string;
@@ -52,6 +59,7 @@ export interface CountdownEventInput {
   nextOccurrence?: Date;
   category: EventCategory;
   dateCalendar?: EventDateCalendar;
+  recurrence?: EventRecurrence;
   source?: EventSource;
   isIgnored?: boolean;
   calendarEventID?: string;
@@ -69,6 +77,7 @@ export class CountdownEventFactory {
       originalDate: input.originalDate,
       category: input.category,
       dateCalendar: input.dateCalendar ?? EventDateCalendar.Gregorian,
+      recurrence: input.recurrence ?? EventRecurrence.Yearly,
       source: input.source ?? EventSource.Local,
       isIgnored: input.isIgnored ?? false,
       calendarEventID: input.calendarEventID,

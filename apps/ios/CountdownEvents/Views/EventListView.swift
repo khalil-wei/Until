@@ -645,6 +645,13 @@ private struct EventDetailView: View {
                         )
                         Divider().padding(.leading, 16)
                         DetailInfoRow(
+                            title: String(localized: "recurrence.title"),
+                            value: event.recurrence.displayName,
+                            systemImage: "repeat",
+                            imageColor: .teal
+                        )
+                        Divider().padding(.leading, 16)
+                        DetailInfoRow(
                             title: String(localized: "detail.reminder"),
                             value: event.reminderLeadTime.displayName,
                             systemImage: "bell",

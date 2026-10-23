@@ -1,9 +1,12 @@
+import { AppPrimaryButton } from '../components/AppPrimaryButton';
+import { AppPageHeader } from '../components/AppPageHeader';
 import { promptAction, router } from '@kit.ArkUI';
 import { CalendarSyncCoordinator } from '../calendar/CalendarSyncCoordinator';
 import { EventFormView } from '../components/EventFormView';
 import { CountdownEvent, EventSource, ReminderLeadTime } from '../model/CountdownEvent';
 import { AppEventStore } from '../repository/AppEventStore';
 import { AppTheme } from '../utils/AppTheme';
+import { EventPresentation } from '../utils/EventPresentation';
 import { L } from '../utils/LocalizedText';
 import {
   EventFormState,
@@ -66,47 +69,24 @@ struct EditEventPage {
 
   @Builder
   private navigationBar() {
-    Row({ space: 14 }) {
-        Button('‹')
-          .fontSize(30)
-          .fontColor(AppTheme.primaryText)
-          .width(42)
-          .height(42)
-          .borderRadius(21)
-          .backgroundColor(AppTheme.cardBackground)
-          .onClick(() => {
-            this.requestClose();
-          })
-          .accessibilityText(L.text('action.cancel'))
-        Text(L.text('edit.title'))
-          .fontSize(24)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(AppTheme.primaryText)
-    }
-    .width('100%')
-    .height(80)
-    .padding({ left: AppTheme.pagePadding, right: AppTheme.pagePadding })
+    AppPageHeader({
+      title: L.text('edit.title'),
+      onBack: () => { this.requestClose(); },
+    })
   }
 
   @Builder
   private primarySaveButton() {
-    Row() {
-      Button(this.isSaving ? L.text('action.saving') : L.text('action.save'))
-          .fontSize(17)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(Color.White)
-          .layoutWeight(1)
-          .height(56)
-          .borderRadius(20)
-          .backgroundColor(this.isSaving ? AppTheme.disabledText : AppTheme.brand)
-          .enabled(!this.isSaving)
-          .onClick(() => {
-            this.save();
-          })
-          .accessibilityText(this.isSaving ? L.text('action.saving') : L.text('action.save'))
+    Column() {
+      AppPrimaryButton({
+        label: L.text('action.save'),
+        busy: this.isSaving,
+        accent: EventPresentation.categoryColor(this.formState.category),
+        onAction: () => { this.save(); },
+      })
     }
     .width('100%')
-    .padding({ left: AppTheme.pagePadding, right: AppTheme.pagePadding, bottom: 16, top: 10 })
+    .padding({ left: AppTheme.pagePadding, right: AppTheme.pagePadding, top: 10, bottom: 16 })
   }
 
   private async loadEvent(): Promise<void> {
@@ -251,7 +231,7 @@ struct EditEventPage {
   }
 
   private formSignature(state: EventFormState): string {
-    return `${state.title}|${state.category}|${state.dateCalendar}|${state.dateText}|${state.notes}|` +
+    return `${state.title}|${state.category}|${state.dateCalendar}|${state.recurrence}|${state.dateText}|${state.notes}|` +
       `${state.hasConfirmedDate}|${state.reminderLeadTime}|${state.shouldSyncToCalendar}`;
   }
 
@@ -265,6 +245,7 @@ struct EditEventPage {
       originalDate: event.originalDate,
       category: event.category,
       dateCalendar: event.dateCalendar,
+      recurrence: event.recurrence,
       source: keepsManagedCalendarLink ? EventSource.AppCalendar : EventSource.Local,
       isIgnored: event.isIgnored ?? false,
       calendarEventID: keepsManagedCalendarLink ? previousEvent.calendarEventID : undefined,

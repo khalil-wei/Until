@@ -50,3 +50,9 @@
 "widget.empty.open_to_add" = "轻点打开 App 添加";
 "widget.empty.accessibility" = "暂无倒计时事件，轻点打开应用添加";
 "widget.event.accessibility" = "%@，%@，日期%@";
+
+"recurrence.title" = "重复";
+"recurrence.yearly" = "每年";
+"recurrence.monthly" = "每月";
+"recurrence.weekly" = "每周";
+"recurrence.footer" = "每月按所选历法的同一日重复，缺少该日期的月份跳过；每周从所选日期起每 7 天重复。";

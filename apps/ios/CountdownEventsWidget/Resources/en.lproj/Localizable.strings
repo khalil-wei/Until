@@ -50,3 +50,9 @@
 "widget.empty.open_to_add" = "Tap to add one in the app";
 "widget.empty.accessibility" = "No countdown events. Tap to open the app and add one.";
 "widget.event.accessibility" = "%@, %@, date %@";
+
+"recurrence.title" = "Repeat";
+"recurrence.yearly" = "Yearly";
+"recurrence.monthly" = "Monthly";
+"recurrence.weekly" = "Weekly";
+"recurrence.footer" = "Monthly uses the same day in the selected calendar and skips months without that day. Weekly repeats every 7 days from the selected date.";

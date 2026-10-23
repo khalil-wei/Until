@@ -20,6 +20,30 @@ export class EventPresentation {
       `${EventPresentation.countdownText(event)}，${EventPresentation.sourceLabel(event.source)}`;
   }
 
+  static categoryColor(category: EventCategory): ResourceColor {
+    switch (category) {
+      case EventCategory.Birthday: return AppTheme.warning;
+      case EventCategory.Anniversary: return AppTheme.danger;
+      case EventCategory.Custom: return AppTheme.upcoming;
+    }
+  }
+
+  static categoryBackground(category: EventCategory): ResourceColor {
+    switch (category) {
+      case EventCategory.Birthday: return AppTheme.warningSoft;
+      case EventCategory.Anniversary: return AppTheme.dangerSoft;
+      case EventCategory.Custom: return AppTheme.upcomingSoft;
+    }
+  }
+
+  static categoryIcon(category: EventCategory): Resource {
+    switch (category) {
+      case EventCategory.Birthday: return $r('app.media.category_birthday');
+      case EventCategory.Anniversary: return $r('app.media.category_anniversary');
+      case EventCategory.Custom: return $r('app.media.category_custom');
+    }
+  }
+
   static categorySymbol(category: EventCategory): string {
     return L.categorySymbol(category);
   }
@@ -66,6 +90,11 @@ export class EventPresentation {
 
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return `${months[date.getMonth()]} ${date.getDate()}`;
+  }
+
+  static compactDate(date: Date, calendar: EventDateCalendar): string {
+    const dateText = EventPresentation.monthDayText(date, calendar);
+    return calendar === EventDateCalendar.Lunar ? `${L.calendarLabel(calendar)} ${dateText}` : dateText;
   }
 
   static displayDate(date: Date, dateCalendar: EventDateCalendar = EventDateCalendar.Gregorian): string {

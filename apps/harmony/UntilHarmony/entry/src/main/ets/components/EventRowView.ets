@@ -17,6 +17,8 @@ export struct EventRowView {
     category: EventCategory.Custom,
   });
   @Prop
+  compact: boolean = false;
+  @Prop
   countdownTextOverride: string = '';
   @Prop
   revealsExactCountdown: boolean = false;
@@ -24,14 +26,22 @@ export struct EventRowView {
     Row({ space: 12 }) {
       this.categoryBadge()
 
-      Column({ space: 4 }) {
+      Column({ space: 5 }) {
         Text(this.event.title)
           .fontSize(16)
-          .fontWeight(FontWeight.Medium)
+          .fontWeight(FontWeight.Bold)
           .fontColor(AppTheme.primaryText)
-          .maxLines(1)
+          .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
+        if (this.compact) {
+          Text(this.compactDateText())
+            .fontSize(12)
+            .fontColor(AppTheme.secondaryText)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .width('100%')
+        } else {
         Row({ space: 6 }) {
           Text(EventPresentation.sourceSymbol(this.event.source))
             .fontSize(9)
@@ -41,16 +51,17 @@ export struct EventRowView {
             .height(16)
             .textAlign(TextAlign.Center)
             .borderRadius(8)
-            .backgroundColor(AppTheme.elevatedBackground)
+            .backgroundColor(Color.Transparent)
 
           Text(`${EventPresentation.displayDate(this.event.nextOccurrence, this.event.dateCalendar)} ${EventPresentation.sourceLabel(this.event.source)}`)
             .fontSize(13)
             .fontColor(AppTheme.secondaryText)
-            .maxLines(1)
+            .maxLines(2)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .layoutWeight(1)
         }
         .width('100%')
+        }
       }
       .alignItems(HorizontalAlign.Start)
       .layoutWeight(1)
@@ -58,31 +69,27 @@ export struct EventRowView {
       Column({ space: 0 }) {
         Text(this.displayedCountdownText())
           .fontSize(this.countdownFontSize())
-          .fontWeight(FontWeight.Bold)
-          .fontColor(EventPresentation.urgencyColor(this.event))
+          .fontWeight(FontWeight.Medium)
+          .fontColor(EventPresentation.categoryColor(this.event.category))
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .textAlign(TextAlign.End)
 
         if (this.shouldShowCountdownUnit()) {
           Text(L.text('countdown.day.unit'))
-            .fontSize(11)
+            .fontSize(AppTheme.supportingTextSize)
             .fontColor(AppTheme.secondaryText)
-            .margin({ top: -2 })
         }
       }
-      .width(72)
-      .height(54)
-      .padding({ left: 8, right: 8, top: 4, bottom: 4 })
-      .justifyContent(FlexAlign.Center)
+      .constraintSize({ minWidth: 64, maxWidth: '36%', minHeight: 50 })
+      .justifyContent(FlexAlign.End)
       .alignItems(HorizontalAlign.End)
-      .borderRadius(13)
-      .backgroundColor(EventPresentation.urgencySoftColor(this.event))
     }
     .width('100%')
-    .padding({ left: 14, right: 12, top: 11, bottom: 11 })
-    .borderRadius(AppTheme.cardRadius)
-    .backgroundColor(AppTheme.cardBackground)
+    .padding({ left: 12, right: 12, top: 15, bottom: 15 })
+    .margin({ bottom: 8 })
+    .borderRadius(16)
+    .backgroundColor(EventPresentation.categoryBackground(this.event.category))
     .accessibilityGroup(true)
     .accessibilityText(EventPresentation.accessibilityLabel(this.event))
     .accessibilityDescription(L.text('event.open_detail.hint'))
@@ -90,24 +97,17 @@ export struct EventRowView {
 
   @Builder
   private categoryBadge() {
-    Text(EventPresentation.categorySymbol(this.event.category))
-      .fontSize(23)
-      .width(42)
-      .height(42)
-      .borderRadius(21)
-      .backgroundColor(this.categorySoftColor())
-      .textAlign(TextAlign.Center)
+    Image(EventPresentation.categoryIcon(this.event.category))
+      .width(32)
+      .height(32)
+      .padding(6)
+      .fillColor(EventPresentation.categoryColor(this.event.category))
+      .borderRadius(12)
+      .backgroundColor(AppTheme.cardBackground)
   }
 
-  private categorySoftColor(): ResourceColor {
-    switch (this.event.category) {
-      case EventCategory.Birthday:
-        return AppTheme.warningSoft;
-      case EventCategory.Anniversary:
-        return AppTheme.dangerSoft;
-      case EventCategory.Custom:
-        return AppTheme.brandSoft;
-    }
+  private compactDateText(): string {
+    return EventPresentation.compactDate(this.event.nextOccurrence, this.event.dateCalendar);
   }
 
   private countdownFontSize(): number {
@@ -124,7 +124,7 @@ export struct EventRowView {
       return 23;
     }
 
-    return this.shouldShowCountdownUnit() ? 28 : 16;
+    return this.shouldShowCountdownUnit() ? 30 : 16;
   }
 
   private displayedCountdownText(): string {
