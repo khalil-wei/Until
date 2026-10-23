@@ -11,11 +11,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
 import com.khalil.until.R
-import com.khalil.until.core.domain.CountdownCalculator
 import com.khalil.until.core.domain.ReminderRules
 import com.khalil.until.core.model.CountdownEvent
 import com.khalil.until.core.model.ReminderLeadTime
-import java.time.LocalDateTime
 import java.time.ZoneId
 
 class ReminderScheduler(private val context: Context) {
@@ -36,12 +34,7 @@ class ReminderScheduler(private val context: Context) {
     fun schedule(event: CountdownEvent) {
         cancel(event.id)
         if (event.reminderLeadTime == ReminderLeadTime.None || !canNotify()) return
-        val occurrence = CountdownCalculator.nextOccurrence(event)
-        var trigger = requireNotNull(ReminderRules.triggerDateTime(occurrence, event.reminderLeadTime))
-        if (!trigger.isAfter(LocalDateTime.now())) {
-            val next = CountdownCalculator.nextAnnualOccurrence(event.originalDate, event.dateCalendar, occurrence.plusDays(1))
-            trigger = requireNotNull(ReminderRules.triggerDateTime(next, event.reminderLeadTime))
-        }
+        val trigger = ReminderRules.nextTriggerDateTime(event) ?: return
         val millis = trigger.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val pendingIntent = reminderPendingIntent(event)
         if (Build.VERSION.SDK_INT < 31 || alarmManager.canScheduleExactAlarms()) {

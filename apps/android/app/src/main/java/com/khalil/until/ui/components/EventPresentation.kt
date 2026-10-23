@@ -7,6 +7,7 @@ import com.khalil.until.core.domain.LunarCalendar
 import com.khalil.until.core.model.CountdownEvent
 import com.khalil.until.core.model.EventCategory
 import com.khalil.until.core.model.EventDateCalendar
+import com.khalil.until.core.model.EventRecurrence
 import com.khalil.until.core.model.EventSource
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -32,11 +33,18 @@ object EventPresentation {
         val next = CountdownCalculator.nextOccurrence(event)
         return if (event.dateCalendar == EventDateCalendar.Lunar) {
             val prefix = if (locale.language == "zh") "农历 " else "Lunar "
-            prefix + LunarCalendar.formattedMonthDay(event.originalDate, locale.language == "zh")
+            val lunarDate = if (event.recurrence == EventRecurrence.Yearly) event.originalDate else next
+            prefix + LunarCalendar.formattedMonthDay(lunarDate, locale.language == "zh")
         } else {
             next.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale))
         }
     }
+
+    fun recurrenceLabel(context: Context, recurrence: EventRecurrence): String = context.getString(when (recurrence) {
+        EventRecurrence.Yearly -> R.string.repeat_yearly
+        EventRecurrence.Monthly -> R.string.repeat_monthly
+        EventRecurrence.Weekly -> R.string.repeat_weekly
+    })
 
     fun countdownText(context: Context, days: Int): String = when {
         days < 0 -> context.getString(R.string.countdown_today)

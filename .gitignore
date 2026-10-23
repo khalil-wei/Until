@@ -6,6 +6,8 @@ xcuserdata/
 DerivedData/
 build/
 .gradle/
+.kotlin/
+hs_err_pid*.log
 .idea/
 .hvigor/
 node_modules/

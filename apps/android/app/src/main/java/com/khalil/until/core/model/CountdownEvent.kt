@@ -11,6 +11,9 @@ enum class EventCategory { Birthday, Anniversary, Custom }
 enum class EventDateCalendar { Gregorian, Lunar }
 
 @Serializable
+enum class EventRecurrence { Yearly, Monthly, Weekly }
+
+@Serializable
 enum class EventSource { Local, AppCalendar, ImportedCalendar }
 
 @Serializable
@@ -34,6 +37,7 @@ data class CountdownEvent(
     val notes: String? = null,
     val reminderLeadTime: ReminderLeadTime = ReminderLeadTime.None,
     val schemaVersion: Int = 1,
+    val recurrence: EventRecurrence = EventRecurrence.Yearly,
 ) {
     val originalDate: LocalDate get() = LocalDate.ofEpochDay(originalEpochDay)
 }

@@ -18,6 +18,9 @@
 
 - iOS 可隐藏导入的系统日历事件而不删除原日程，并提供恢复入口。
 - 隐藏/恢复不是三端统一能力：Android 不提供；HarmonyOS 不对外提供，现有遗留入口待清理。
+- Android 新增按月、按周重复；当前 iOS 与 HarmonyOS 保持按年行为。`recurrence` 缺省为 `yearly`，旧事件不自动改变重复规则。
+- Android 导入日历按源事件的 RRULE 与原始开始日期识别可完整表达的年/月/周规则。每两周、多星期、次数或截止日期限制、额外/排除日期及单次例外等复杂规则不导入、不回写，并提示跳过数量。旧导入项在刷新时校正重复规则、保留内部 ID 与提醒；查询失败或缺少窗口内实例不清空旧记录，明确发现不支持的旧导入项退出当前导入列表，但不删除系统日历。只修改标题或备注时不重写重复规则、日期、时间和时区；保存前重新读取源规则，无法核实或已变为复杂规则时阻止保存。
+- 按月以所选历法的日数重复，没有该日的月份跳过；农历闰月作为独立月份参与重复。按周从原始日期起每 7 个本地日期重复，与历法无关。未来原始日期为首次发生日期，不提前生成实例。
 - 除已记录的平台特性外，平台差异只能改变实现方式，不能改变用户可见语义。
 
 ### 低频彩蛋
@@ -37,9 +40,10 @@
 | `id` | UUID/string | 稳定内部标识。 |
 | `title` | string | 必填事件名称。 |
 | `nextOccurrence` | date/time | 用于显示和排序的下一次发生日期。 |
-| `originalDate` | date/time | 用于重算年度日期的原始日期。 |
+| `originalDate` | date/time | 用于重算重复日期的原始日期，同时作为首次发生日期。 |
 | `category` | enum | `birthday`、`anniversary`、`custom`。 |
 | `dateCalendar` | enum | `gregorian`、`lunar`。 |
+| `recurrence` | enum | `yearly`、`monthly`、`weekly`；Android 已接入，旧记录缺省为 `yearly`。 |
 | `source` | enum | `local`、`appCalendar`、`importedCalendar`。 |
 | `calendarEventID` | string/null | 平台日历事件标识。 |
 | `calendarItemID` | string/null | 可用时保存的平台稳定日历项标识。 |
@@ -69,6 +73,7 @@ iOS 可额外保存 `isIgnored` 以隐藏/恢复导入事件。该字段不是�
 - Android 13 及以上需要运行时通知权限；精确闹钟和后台调度受系统/OEM 限制。
 - 日历、提醒、深链和组件已接入，真实系统行为待真机验收。
 - 不提供导入事件隐藏/恢复。
+- 应用内容避让系统安全区；桌面组件按宿主实际宽高和字体预算展示可完整容纳的事件，不固定中/大尺寸条数。
 
 ## 4. 验收要求
 

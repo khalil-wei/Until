@@ -31,8 +31,8 @@ android {
         applicationId = "com.khalil.until"
         minSdk = 26
         targetSdk = 35
-        versionCode = 20002
-        versionName = "2.0.2"
+        versionCode = 20007
+        versionName = "2.0.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -60,6 +60,8 @@ android {
         compose = true
         buildConfig = true
     }
+
+    sourceSets.getByName("test").resources.srcDir(rootProject.file("../../packages/test-fixtures"))
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

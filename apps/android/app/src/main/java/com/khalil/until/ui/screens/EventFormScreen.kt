@@ -32,8 +32,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,7 +40,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,22 +54,23 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.khalil.until.R
+import com.khalil.until.core.domain.LunarCalendar
+import com.khalil.until.ui.components.EventDatePickerDialog
 import com.khalil.until.core.model.CountdownEvent
 import com.khalil.until.core.model.EventCategory
 import com.khalil.until.core.model.EventDateCalendar
+import com.khalil.until.core.model.EventRecurrence
 import com.khalil.until.core.model.EventSource
 import com.khalil.until.core.model.ReminderLeadTime
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -80,9 +78,11 @@ import java.time.format.FormatStyle
 @Composable
 fun EventFormScreen(existing: CountdownEvent?, isSaving: Boolean, onCancel: () -> Unit, onSave: (CountdownEvent, Boolean) -> Unit) {
     val context = LocalContext.current
+    val locale = LocalConfiguration.current.locales[0]
     var title by rememberSaveable(existing?.id) { mutableStateOf(existing?.title.orEmpty()) }
     var category by rememberSaveable(existing?.id) { mutableStateOf(existing?.category ?: EventCategory.Birthday) }
     var calendar by rememberSaveable(existing?.id) { mutableStateOf(existing?.dateCalendar ?: EventDateCalendar.Gregorian) }
+    var recurrence by rememberSaveable(existing?.id) { mutableStateOf(existing?.recurrence ?: EventRecurrence.Yearly) }
     var dateEpochDay by rememberSaveable(existing?.id) { mutableStateOf(existing?.originalEpochDay ?: LocalDate.now().toEpochDay()) }
     var notes by rememberSaveable(existing?.id) { mutableStateOf(existing?.notes.orEmpty()) }
     var reminder by rememberSaveable(existing?.id) { mutableStateOf(existing?.reminderLeadTime ?: ReminderLeadTime.None) }
@@ -116,6 +116,7 @@ fun EventFormScreen(existing: CountdownEvent?, isSaving: Boolean, onCancel: () -
                 calendarItemId = existing?.calendarItemId,
                 notes = notes.trim().ifBlank { null },
                 reminderLeadTime = reminder,
+                recurrence = recurrence,
             ),
             syncCalendar,
         )
@@ -180,15 +181,46 @@ fun EventFormScreen(existing: CountdownEvent?, isSaving: Boolean, onCancel: () -
 
             Surface(shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.surface) {
                 Row(
-                    Modifier.fillMaxWidth().height(78.dp).clickable { showDatePicker = true }.padding(horizontal = 16.dp),
+                    Modifier.fillMaxWidth().clickable { showDatePicker = true }.padding(horizontal = 16.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("◷", color = MaterialTheme.colorScheme.primary, fontSize = 25.sp, modifier = Modifier.width(38.dp))
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                         Text(stringResource(R.string.date), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
-                        Text(LocalDate.ofEpochDay(dateEpochDay).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)), fontSize = 19.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        val selectedDate = LocalDate.ofEpochDay(dateEpochDay)
+                        val solar = selectedDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG).withLocale(locale))
+                        Text(
+                            if (calendar == EventDateCalendar.Lunar) LunarCalendar.formattedDate(selectedDate, locale.language == "zh") else solar,
+                            fontSize = 19.sp, fontWeight = FontWeight.Bold,
+                        )
+                        if (calendar == EventDateCalendar.Lunar) {
+                            Text(stringResource(R.string.corresponding_gregorian, solar), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
+                        }
                     }
                     Text("⌄", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 20.sp)
+                }
+            }
+
+            Surface(shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.surface) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.recurrence_label), style = MaterialTheme.typography.titleMedium)
+                    SegmentedRow(
+                        options = listOf(
+                            EventRecurrence.Yearly to stringResource(R.string.repeat_yearly),
+                            EventRecurrence.Monthly to stringResource(R.string.repeat_monthly),
+                            EventRecurrence.Weekly to stringResource(R.string.repeat_weekly),
+                        ),
+                        selected = recurrence,
+                    ) { recurrence = it }
+                    Text(
+                        stringResource(when (recurrence) {
+                            EventRecurrence.Yearly -> R.string.repeat_yearly_description
+                            EventRecurrence.Monthly -> R.string.repeat_monthly_description
+                            EventRecurrence.Weekly -> R.string.repeat_weekly_description
+                        }),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
             }
 
@@ -230,24 +262,18 @@ fun EventFormScreen(existing: CountdownEvent?, isSaving: Boolean, onCancel: () -
     }
 
     if (showDatePicker) {
-        val selected = LocalDate.ofEpochDay(dateEpochDay).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-        val pickerState = rememberDatePickerState(initialSelectedDateMillis = selected)
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = { TextButton(onClick = { pickerState.selectedDateMillis?.let { dateEpochDay = Instant.ofEpochMilli(it).atZone(ZoneOffset.UTC).toLocalDate().toEpochDay() }; showDatePicker = false }) { Text(stringResource(R.string.done)) } },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.cancel)) } },
-        ) {
-            Column {
-                if (category != EventCategory.Custom) {
-                    SegmentedRow(
-                        options = listOf(EventDateCalendar.Gregorian to stringResource(R.string.gregorian), EventDateCalendar.Lunar to stringResource(R.string.lunar)),
-                        selected = calendar,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                    ) { calendar = it; if (it == EventDateCalendar.Lunar) syncCalendar = false }
-                }
-                DatePicker(state = pickerState)
-            }
-        }
+        EventDatePickerDialog(
+            initialDate = LocalDate.ofEpochDay(dateEpochDay),
+            initialCalendar = calendar,
+            allowLunar = category != EventCategory.Custom,
+            onDismiss = { showDatePicker = false },
+            onConfirm = { selectedDate, selectedCalendar ->
+                dateEpochDay = selectedDate.toEpochDay()
+                calendar = selectedCalendar
+                if (calendar == EventDateCalendar.Lunar) syncCalendar = false
+                showDatePicker = false
+            },
+        )
     }
 }
 

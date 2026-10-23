@@ -3,7 +3,6 @@ package com.khalil.until.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -27,6 +26,7 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
@@ -43,17 +43,7 @@ import com.khalil.until.core.model.CountdownEvent
 import kotlinx.coroutines.flow.first
 
 class UntilWidget : GlanceAppWidget() {
-    override val sizeMode = SizeMode.Responsive(
-        setOf(
-            DpSize(110.dp, 110.dp),
-            DpSize(250.dp, 110.dp),
-            DpSize(220.dp, 220.dp),
-            DpSize(250.dp, 250.dp),
-            DpSize(280.dp, 280.dp),
-            DpSize(300.dp, 300.dp),
-            DpSize(250.dp, 320.dp),
-        ),
-    )
+    override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val app = context.applicationContext as UntilApplication
@@ -75,7 +65,7 @@ class UntilWidgetReceiver : GlanceAppWidgetReceiver() {
 @androidx.compose.runtime.Composable
 private fun WidgetContent(context: Context, events: List<CountdownEvent>, theme: WidgetTheme) {
     val size = LocalSize.current
-    val layout = widgetLayoutFor(size.width.value, size.height.value)
+    val plan = widgetLayoutPlan(size.width.value, size.height.value, context.resources.configuration.fontScale, events.size)
     val appIntent = Intent(context, MainActivity::class.java)
     Box(
         modifier = GlanceModifier.fillMaxSize().appWidgetBackground().cornerRadius(24.dp)
@@ -89,14 +79,13 @@ private fun WidgetContent(context: Context, events: List<CountdownEvent>, theme:
                     Spacer(GlanceModifier.height(6.dp))
                     Text(context.getString(R.string.widget_empty), style = TextStyle(color = ink(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 15f)))
                     Spacer(GlanceModifier.height(4.dp))
-                    Text(context.getString(R.string.widget_add), style = TextStyle(color = secondaryInk(), fontSize = widgetSp(context, 11f)))
+                    if (size.height >= 140.dp) Text(context.getString(R.string.widget_add), maxLines = 1, style = TextStyle(color = secondaryInk(), fontSize = widgetSp(context, 11f)))
                 }
             }
         } else {
-            when (layout) {
-                WidgetLayout.LargeSpacious -> LargeWidget(context, events.take(4), theme, spacious = true)
-                WidgetLayout.LargeCompact -> LargeWidget(context, events.take(3), theme, spacious = false)
-                WidgetLayout.Medium -> MediumWidget(context, events.take(3), theme)
+            when (plan.layout) {
+                WidgetLayout.LargeSpacious, WidgetLayout.LargeCompact -> LargeWidget(context, events, theme, plan)
+                WidgetLayout.Medium -> MediumWidget(context, events, theme, plan)
                 WidgetLayout.Small -> SmallWidget(
                     context,
                     events.first(),
@@ -107,44 +96,32 @@ private fun WidgetContent(context: Context, events: List<CountdownEvent>, theme:
     }
 }
 
-internal enum class WidgetLayout { Small, Medium, LargeCompact, LargeSpacious }
-
-/**
- * Launcher cell sizes and host padding differ between ColorOS, HyperOS,
- * OriginOS/Funtouch OS and AOSP. Only select a denser layout when both axes have
- * enough drawable space; a borderline square falls back instead of clipping.
- */
-internal fun widgetLayoutFor(widthDp: Float, heightDp: Float): WidgetLayout = when {
-    widthDp >= 280f && heightDp >= 280f -> WidgetLayout.LargeSpacious
-    widthDp >= 240f && heightDp >= 240f -> WidgetLayout.LargeCompact
-    widthDp >= 240f && heightDp >= 100f -> WidgetLayout.Medium
-    else -> WidgetLayout.Small
-}
-
 @androidx.compose.runtime.Composable
 private fun SmallWidget(context: Context, event: CountdownEvent, roomy: Boolean) {
     val days = eventDays(event)
     val intent = eventIntent(context, event)
     val value = countdown(context, days)
     if (!roomy) {
+        val height = LocalSize.current.height.value
+        val textScale = (height / 110f).coerceIn(.65f, 1f)
         Column(
             modifier = GlanceModifier.fillMaxSize().padding(6.dp).cornerRadius(20.dp).background(heroColor(days))
-                .padding(horizontal = 10.dp, vertical = 9.dp).clickable(actionStartActivity(intent)),
+                .padding(horizontal = 10.dp, vertical = if (height < 90) 4.dp else if (height < 110) 6.dp else 9.dp).clickable(actionStartActivity(intent)),
         ) {
-            Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            if (LocalSize.current.height >= 140.dp) Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(categorySymbol(event), style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 10f)))
                 Spacer(GlanceModifier.width(5.dp))
                 Text(categoryName(context, event), maxLines = 1, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 9f)), modifier = GlanceModifier.defaultWeight())
             }
             Spacer(GlanceModifier.height(3.dp))
-            Text(event.title, maxLines = 1, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 14f)))
+            Text(event.title, maxLines = 1, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 14f * textScale)))
             Spacer(GlanceModifier.defaultWeight())
-            Row(GlanceModifier.fillMaxWidth().height(34.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     value,
                     maxLines = 1,
                     modifier = GlanceModifier.padding(bottom = 2.dp),
-                    style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = countdownSize(context, value, numeric = 26f, label = 23f)),
+                    style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = countdownSize(context, value, numeric = 24f * textScale, label = 21f * textScale)),
                 )
                 if (shouldShowUnit(days)) {
                     Spacer(GlanceModifier.width(3.dp))
@@ -165,10 +142,10 @@ private fun SmallWidget(context: Context, event: CountdownEvent, roomy: Boolean)
             Text("UNTIL", style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 9f)))
         }
         Spacer(GlanceModifier.height(7.dp))
-        Text(event.title, maxLines = 2, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 15f)))
+        Text(event.title, maxLines = 1, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 15f)))
         Spacer(GlanceModifier.defaultWeight())
-        Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
-            Text(value, maxLines = 1, modifier = GlanceModifier.padding(bottom = 2.dp), style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = countdownSize(context, value, numeric = 34f, label = 30f)))
+        Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(value, maxLines = 1, modifier = GlanceModifier.padding(bottom = 2.dp), style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = countdownSize(context, value, numeric = 32f, label = 28f)))
             if (shouldShowUnit(days)) {
                 Spacer(GlanceModifier.width(4.dp))
                 Text(context.getString(R.string.day_unit), maxLines = 1, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 11f)))
@@ -179,30 +156,28 @@ private fun SmallWidget(context: Context, event: CountdownEvent, roomy: Boolean)
 }
 
 @androidx.compose.runtime.Composable
-private fun MediumWidget(context: Context, events: List<CountdownEvent>, theme: WidgetTheme) {
+private fun MediumWidget(context: Context, events: List<CountdownEvent>, theme: WidgetTheme, plan: WidgetLayoutPlan) {
     Row(GlanceModifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 8.dp)) {
-        Box(GlanceModifier.width(98.dp).fillMaxSize()) { MediumHeroEvent(context, events.first()) }
+        Box(GlanceModifier.width(98.dp).fillMaxHeight()) { MediumHeroEvent(context, events.first()) }
         Spacer(GlanceModifier.width(9.dp))
         Column(GlanceModifier.defaultWeight()) {
             Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text("UNTIL", style = TextStyle(color = widgetBrand(theme), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 10f)))
+                Text("UNTIL", maxLines = 1, style = TextStyle(color = widgetBrand(theme), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 10f)))
                 Spacer(GlanceModifier.width(6.dp))
-                Text(if (java.util.Locale.getDefault().language == "zh") "即将到来" else "COMING UP", style = TextStyle(color = secondaryInk(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 11f)), modifier = GlanceModifier.defaultWeight())
-                Text(events.size.toString(), style = TextStyle(color = secondaryInk(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 10f)))
+                Text(if (java.util.Locale.getDefault().language == "zh") "即将到来" else "COMING UP", maxLines = 1, style = TextStyle(color = secondaryInk(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 11f)), modifier = GlanceModifier.defaultWeight())
+                Text(events.size.toString(), maxLines = 1, style = TextStyle(color = secondaryInk(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 10f)))
             }
             Spacer(GlanceModifier.height(4.dp))
-            events.drop(1).take(2).forEachIndexed { index, event ->
-                UpcomingEvent(context, event, large = false)
-                if (index == 0 && events.size > 2) Spacer(GlanceModifier.height(4.dp))
-            }
+            UpcomingEvents(context, events.drop(1).take(plan.upcomingCount), plan)
         }
     }
 }
 
 @androidx.compose.runtime.Composable
-private fun LargeWidget(context: Context, events: List<CountdownEvent>, theme: WidgetTheme, spacious: Boolean) {
-    val upcoming = events.drop(1).take(if (spacious) 3 else 2)
-    Column(GlanceModifier.fillMaxSize().padding(if (spacious) 14.dp else 10.dp)) {
+private fun LargeWidget(context: Context, events: List<CountdownEvent>, theme: WidgetTheme, plan: WidgetLayoutPlan) {
+    val spacious = plan.layout == WidgetLayout.LargeSpacious
+    val upcoming = events.drop(1).take(plan.upcomingCount)
+    Column(GlanceModifier.fillMaxSize().padding(plan.paddingDp.dp)) {
         Row(GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(GlanceModifier.defaultWeight()) {
                 Text(if (java.util.Locale.getDefault().language == "zh") "待到 Until" else "Until", maxLines = 1, style = TextStyle(color = widgetBrand(theme), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, if (spacious) 18f else 16f)))
@@ -211,15 +186,11 @@ private fun LargeWidget(context: Context, events: List<CountdownEvent>, theme: W
             Text("▦◷", maxLines = 1, style = TextStyle(color = widgetBrand(theme), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, if (spacious) 18f else 16f)))
         }
         Spacer(GlanceModifier.height(if (spacious) 8.dp else 4.dp))
-        LargeHeroEvent(context, events.first(), compact = !spacious)
-        if (events.size > 1) {
+        LargeHeroEvent(context, events.first(), compact = !spacious, heightDp = plan.heroHeightDp)
+        if (upcoming.isNotEmpty()) {
             Spacer(GlanceModifier.height(if (spacious) 8.dp else 4.dp))
             Text(if (java.util.Locale.getDefault().language == "zh") "接下来的日子" else "Coming next", maxLines = 1, style = TextStyle(color = secondaryInk(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, if (spacious) 12f else 11f)))
-            Spacer(GlanceModifier.height(if (spacious) 5.dp else 4.dp))
-            upcoming.forEachIndexed { index, event ->
-                UpcomingEvent(context, event, large = true, compactLarge = !spacious)
-                if (index < upcoming.lastIndex) Spacer(GlanceModifier.height(if (spacious) 5.dp else 4.dp))
-            }
+            UpcomingEvents(context, upcoming, plan)
         }
     }
 }
@@ -232,35 +203,40 @@ private fun MediumHeroEvent(context: Context, event: CountdownEvent) {
         modifier = GlanceModifier.fillMaxSize().cornerRadius(20.dp).background(heroColor(days))
             .padding(8.dp).clickable(actionStartActivity(eventIntent(context, event))),
     ) {
-        Row(GlanceModifier.fillMaxWidth()) {
+        if (LocalSize.current.height >= 150.dp) Row(GlanceModifier.fillMaxWidth()) {
             Text(categorySymbol(event), style = TextStyle(color = white(), fontSize = widgetSp(context, 12f)))
             Spacer(GlanceModifier.defaultWeight())
             Text(if (java.util.Locale.getDefault().language == "zh") "最近" else "NEXT", style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 8f)))
         }
         Spacer(GlanceModifier.defaultWeight())
-        Text(value, maxLines = 1, modifier = GlanceModifier.padding(bottom = 2.dp), style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = countdownSize(context, value, numeric = 27f, label = 24f)))
-        if (shouldShowUnit(days)) Text(context.getString(R.string.day_unit), style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 10f)))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(value, maxLines = 1, modifier = GlanceModifier.padding(bottom = 2.dp), style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = countdownSize(context, value, numeric = 27f, label = 24f)))
+            if (shouldShowUnit(days)) {
+                Spacer(GlanceModifier.width(3.dp))
+                Text(context.getString(R.string.day_unit), maxLines = 1, modifier = GlanceModifier.padding(vertical = 3.dp), style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 10f)))
+            }
+        }
         Text(event.title, maxLines = 1, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, 11f)))
     }
 }
 
 @androidx.compose.runtime.Composable
-private fun LargeHeroEvent(context: Context, event: CountdownEvent, compact: Boolean) {
+private fun LargeHeroEvent(context: Context, event: CountdownEvent, compact: Boolean, heightDp: Int) {
     val days = eventDays(event)
     val value = countdown(context, days)
     Row(
-        GlanceModifier.fillMaxWidth().height(if (compact) 86.dp else 98.dp).cornerRadius(22.dp).background(heroColor(days)).padding(if (compact) 10.dp else 14.dp)
+        GlanceModifier.fillMaxWidth().height(heightDp.dp).cornerRadius(22.dp).background(heroColor(days)).padding(if (compact) 10.dp else 14.dp)
             .clickable(actionStartActivity(eventIntent(context, event))),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(GlanceModifier.defaultWeight()) {
             Text("${categorySymbol(event)}  ${categoryName(context, event)}", maxLines = 1, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, if (compact) 10f else 11f)))
             Spacer(GlanceModifier.height(if (compact) 3.dp else 5.dp))
-            Text(event.title, maxLines = if (compact) 1 else 2, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, if (compact) 16f else 18f)))
+            Text(event.title, maxLines = 1, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, if (compact) 16f else 18f)))
             Text(dateText(event), maxLines = 1, style = TextStyle(color = white(), fontWeight = FontWeight.Medium, fontSize = widgetSp(context, if (compact) 9f else 10f)))
         }
         Spacer(GlanceModifier.width(14.dp))
-        Column(horizontalAlignment = Alignment.End) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 value,
                 maxLines = 1,
@@ -271,18 +247,37 @@ private fun LargeHeroEvent(context: Context, event: CountdownEvent, compact: Boo
                     fontSize = countdownSize(context, value, numeric = if (compact) 36f else 42f, label = if (compact) 31f else 35f),
                 ),
             )
-            if (shouldShowUnit(days)) Text(context.getString(R.string.day_unit), maxLines = 1, style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, if (compact) 10f else 11f)))
+            if (shouldShowUnit(days)) {
+                Spacer(GlanceModifier.width(4.dp))
+                Text(context.getString(R.string.day_unit), maxLines = 1, modifier = GlanceModifier.padding(vertical = 4.dp), style = TextStyle(color = white(), fontWeight = FontWeight.Bold, fontSize = widgetSp(context, if (compact) 10f else 11f)))
+            }
         }
     }
 }
 
 @androidx.compose.runtime.Composable
-private fun UpcomingEvent(context: Context, event: CountdownEvent, large: Boolean, compactLarge: Boolean = false) {
+private fun UpcomingEvents(context: Context, events: List<CountdownEvent>, plan: WidgetLayoutPlan) {
+    // Glance Column supports at most ten direct children. Group rows without spacer children.
+    Column(GlanceModifier.fillMaxWidth()) {
+        events.chunked(8).forEach { group ->
+            Column(GlanceModifier.fillMaxWidth()) {
+                group.forEach { event ->
+                    Box(GlanceModifier.fillMaxWidth().padding(top = plan.rowGapDp.dp)) {
+                        UpcomingEvent(context, event, large = plan.layout != WidgetLayout.Medium, rowHeightDp = plan.rowHeightDp)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@androidx.compose.runtime.Composable
+private fun UpcomingEvent(context: Context, event: CountdownEvent, large: Boolean, rowHeightDp: Int) {
     val days = eventDays(event)
     val accent = urgencyAccent(days)
     Row(
         GlanceModifier.fillMaxWidth()
-            .height(if (large) (if (compactLarge) 36.dp else 42.dp) else 34.dp)
+            .height(rowHeightDp.dp)
             .cornerRadius(13.dp).background(ColorProvider(Color.White, Color.White))
             .padding(horizontal = if (large) 10.dp else 7.dp)
             .clickable(actionStartActivity(eventIntent(context, event))),
@@ -324,7 +319,7 @@ private fun shouldShowUnit(days: Int): Boolean = days in 3..999
  */
 private fun widgetSp(context: Context, value: Float) = run {
     val fontScale = context.resources.configuration.fontScale.coerceAtLeast(0.5f)
-    val safeScale = fontScale.coerceAtMost(1.15f)
+    val safeScale = widgetFontScale(fontScale)
     (value * safeScale / fontScale).sp
 }
 
@@ -376,7 +371,8 @@ private fun dateText(event: CountdownEvent): String {
     val next = CountdownCalculator.nextOccurrence(event)
     val solar = if (chinese) "${next.monthValue}月${next.dayOfMonth}日" else next.format(java.time.format.DateTimeFormatter.ofPattern("MMM d", locale))
     if (event.dateCalendar != com.khalil.until.core.model.EventDateCalendar.Lunar) return solar
-    val lunar = com.khalil.until.core.domain.LunarCalendar.formattedMonthDay(event.originalDate, chinese)
+    val lunarDate = if (event.recurrence == com.khalil.until.core.model.EventRecurrence.Yearly) event.originalDate else next
+    val lunar = com.khalil.until.core.domain.LunarCalendar.formattedMonthDay(lunarDate, chinese)
     return if (chinese) "农历 $lunar · $solar" else "Lunar $lunar · $solar"
 }
 private fun categorySymbol(event: CountdownEvent) = when (event.category.name) { "Birthday" -> "🎂"; "Anniversary" -> "❤"; else -> "★" }

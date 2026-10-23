@@ -221,28 +221,31 @@ struct CountdownCard {
           }
           .width('100%')
 
+          Text(this.entry0Title)
+            .fontSize(13)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#FFFFFF')
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+
           Blank()
 
-          Text(this.entry0CountdownBadgeText)
-            .fontSize(this.mediumHeroFontSize())
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#FFFFFF')
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
+          Row({ space: 4 }) {
+            Text(this.entry0CountdownBadgeText)
+              .fontSize(this.mediumHeroFontSize())
+              .fontWeight(FontWeight.Bold)
+              .fontColor('#FFFFFF')
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-          if (this.entry0ShouldShowUnit === 'true') {
-            Text(this.entry0CountdownUnitText)
-              .fontSize(10)
-              .fontWeight(FontWeight.Medium)
-              .fontColor('#E8FFFFFF')
+            if (this.entry0ShouldShowUnit === 'true') {
+              Text(this.entry0CountdownUnitText)
+                .fontSize(10)
+                .fontWeight(FontWeight.Medium)
+                .fontColor('#E8FFFFFF')
+            }
           }
-
-          Text(this.entry0Title)
-            .fontSize(11)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#FFFFFF')
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .alignItems(VerticalAlign.Bottom)
         }
         .width(106)
         .height('100%')
@@ -318,66 +321,60 @@ struct CountdownCard {
   private largeCard() {
     if (this.hasEvents === 'true') {
       Column({ space: this.largeLayoutSpacing() }) {
-        Row({ space: 10 }) {
-          Column({ space: 2 }) {
-            Text(this.largeTitle)
-              .fontSize(17)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#079D89')
-            Text(this.largeSubtitle)
-              .fontSize(9)
-              .fontColor(this.secondaryTextColor())
-          }
-          .alignItems(HorizontalAlign.Start)
-          Blank()
-          Text(this.eventCountText)
-            .fontSize(10)
+        Row({ space: 8 }) {
+          Text(this.brandShort)
+            .fontSize(11)
             .fontWeight(FontWeight.Bold)
             .fontColor('#079D89')
-            .padding({ left: 10, right: 10, top: 4, bottom: 4 })
-            .borderRadius(12)
+            .letterSpacing(1.2)
+          Text(this.sectionTitle)
+            .fontSize(11)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(this.secondaryTextColor())
+          Blank()
+          Text(this.eventCountText)
+            .fontSize(9)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#079D89')
+            .padding({ left: 8, right: 8, top: 3, bottom: 3 })
+            .borderRadius(10)
             .backgroundColor(this.brandTintColor())
             .textAlign(TextAlign.Center)
         }
         .width('100%')
-        .height(32)
+        .height(26)
 
         Stack({ alignContent: Alignment.Center }) {
           Row()
-            .width(104)
-            .height(104)
-            .borderRadius(52)
-            .border({ width: 18, color: '#12FFFFFF' })
-            .translate({ x: 118, y: -34 })
+            .width(92)
+            .height(92)
+            .borderRadius(46)
+            .border({ width: 14, color: '#14FFFFFF' })
+            .translate({ x: 126, y: -26 })
 
-          Text('✦')
-            .fontSize(28)
-            .fontColor('#2AFFFFFF')
-            .translate({ x: -132, y: 42 })
-
-          Column() {
-            Row({ space: 8 }) {
+          Column({ space: 3 }) {
+            Row({ space: 7 }) {
               Row({ space: 5 }) {
                 Text(this.entry0CategorySymbol)
-                  .fontSize(16)
+                  .fontSize(13)
                 Text(this.entry0CategoryLabel)
-                  .fontSize(11)
+                  .fontSize(10)
                   .fontWeight(FontWeight.Bold)
                   .fontColor('#FFFFFF')
               }
-              .padding({ left: 9, right: 10, top: 4, bottom: 4 })
-              .borderRadius(14)
+              .padding({ left: 8, right: 9, top: 3, bottom: 3 })
+              .borderRadius(12)
               .backgroundColor('#24FFFFFF')
 
               Blank()
 
               Text(this.entry0DateText)
-                .fontSize(10)
+                .fontSize(9)
                 .fontWeight(FontWeight.Medium)
                 .fontColor('#E8FFFFFF')
                 .maxLines(1)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
-                .constraintSize({ maxWidth: 154 })
+                .constraintSize({ maxWidth: 148 })
             }
             .width('100%')
 
@@ -385,22 +382,23 @@ struct CountdownCard {
 
             Row({ space: 12 }) {
               Text(this.entry0Title)
-                .fontSize(20)
+                .fontSize(this.largeHeroTitleFontSize())
                 .fontWeight(FontWeight.Bold)
                 .fontColor('#FFFFFF')
-                .maxLines(1)
+                .maxLines(this.largeHeroTitleMaxLines())
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
                 .layoutWeight(1)
 
-              Row({ space: 4 }) {
+              Row({ space: 6 }) {
                 Text(this.entry0CountdownBadgeText)
                   .fontSize(this.largeHeroFontSize())
                   .fontWeight(FontWeight.Bold)
                   .fontColor('#FFFFFF')
                   .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
                 if (this.entry0ShouldShowUnit === 'true') {
                   Text(this.entry0CountdownUnitText)
-                    .fontSize(11)
+                    .fontSize(this.largeHeroUnitFontSize())
                     .fontWeight(FontWeight.Bold)
                     .fontColor('#E8FFFFFF')
                 }
@@ -408,19 +406,19 @@ struct CountdownCard {
               .alignItems(VerticalAlign.Bottom)
             }
             .width('100%')
+            .alignItems(VerticalAlign.Bottom)
           }
           .width('100%')
           .height('100%')
           .padding({
             left: this.largeHeroHorizontalPadding(),
             right: this.largeHeroHorizontalPadding(),
-            top: 12,
-            bottom: 12,
+            top: 8,
+            bottom: 8,
           })
         }
         .width('100%')
-        .layoutWeight(1)
-        .constraintSize({ minHeight: this.largeHeroMinimumHeight() })
+        .height(this.largeHeroHeight())
         .borderRadius(22)
         .backgroundColor(this.heroColor())
         .onClick(() => {
@@ -494,6 +492,8 @@ struct CountdownCard {
             )
           }
           .width('100%')
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.SpaceEvenly)
           .padding({ left: 12, right: 12 })
           .borderRadius(18)
           .backgroundColor(this.surfaceColor())
@@ -689,7 +689,20 @@ struct CountdownCard {
 
   private largeHeroFontSize(): number {
     const length = this.entry0CountdownBadgeText.length;
-    return length > 7 ? 24 : length > 3 ? 32 : length > 2 ? 40 : 48;
+    const compact = this.largeSecondaryEventCount() >= 4;
+    return length > 7 ? 18 : length > 3 ? (compact ? 23 : 25) : length > 2 ? (compact ? 28 : 30) : compact ? 30 : 32;
+  }
+
+  private largeHeroTitleFontSize(): number {
+    return this.largeSecondaryEventCount() >= 4 ? 17 : 18;
+  }
+
+  private largeHeroTitleMaxLines(): number {
+    return 1;
+  }
+
+  private largeHeroUnitFontSize(): number {
+    return this.largeSecondaryEventCount() >= 4 ? 11 : 12;
   }
 
   private largeSecondaryEventCount(): number {
@@ -724,9 +737,9 @@ struct CountdownCard {
     return count >= 5 ? 4 : count >= 4 ? 5 : count >= 3 ? 6 : 8;
   }
 
-  private largeHeroMinimumHeight(): number {
+  private largeHeroHeight(): number {
     const count = this.largeSecondaryEventCount();
-    return count >= 5 ? 58 : count >= 4 ? 66 : count >= 3 ? 78 : 90;
+    return count >= 5 ? 76 : count >= 4 ? 88 : count >= 3 ? 100 : 104;
   }
 
   private largeHeroHorizontalPadding(): number {
@@ -735,27 +748,27 @@ struct CountdownCard {
 
   private largeEventRowHeight(): number {
     const count = this.largeSecondaryEventCount();
-    return count >= 5 ? 29 : count >= 4 ? 34 : count >= 3 ? 38 : 46;
+    return count >= 5 ? 36 : count >= 4 ? 40 : count >= 3 ? 42 : 46;
   }
 
   private largeEventIconSize(): number {
-    return this.largeSecondaryEventCount() >= 4 ? 20 : 24;
+    return this.largeSecondaryEventCount() >= 4 ? 22 : 24;
   }
 
   private largeEventIconFontSize(): number {
-    return this.largeSecondaryEventCount() >= 4 ? 10 : 12;
-  }
-
-  private largeEventTitleFontSize(): number {
     return this.largeSecondaryEventCount() >= 4 ? 11 : 12;
   }
 
+  private largeEventTitleFontSize(): number {
+    return this.largeSecondaryEventCount() >= 4 ? 12 : 13;
+  }
+
   private largeEventDateFontSize(): number {
-    return this.largeSecondaryEventCount() >= 4 ? 8 : 9;
+    return this.largeSecondaryEventCount() >= 4 ? 9 : 10;
   }
 
   private largeEventCountdownFontSize(): number {
-    return this.largeSecondaryEventCount() >= 4 ? 12 : 13;
+    return this.largeSecondaryEventCount() >= 4 ? 14 : 15;
   }
 
   private hasVisibleLargeEventAfter(index: number): boolean {

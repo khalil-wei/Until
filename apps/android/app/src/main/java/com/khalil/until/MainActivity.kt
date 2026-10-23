@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
@@ -24,7 +25,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.khalil.until.core.model.EventSource
+import com.khalil.until.core.model.CountdownEvent
 import com.khalil.until.platform.calendar.AndroidCalendarService
+import com.khalil.until.platform.calendar.CalendarSyncBlock
+import com.khalil.until.platform.calendar.CalendarSyncResult
 import com.khalil.until.ui.screens.EventDetailScreen
 import com.khalil.until.ui.screens.EventFormScreen
 import com.khalil.until.ui.screens.HomeScreen
@@ -35,6 +39,7 @@ import com.khalil.until.widget.WidgetSettingsStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,11 +59,38 @@ class MainActivity : ComponentActivity() {
 
                     suspend fun updateWidget() = UntilWidget().updateAll(this@MainActivity)
 
+                    suspend fun saveEvent(draft: CountdownEvent, syncToCalendar: Boolean, previous: CountdownEvent? = null): CalendarSyncResult = withContext(Dispatchers.IO) {
+                        val result = if (syncToCalendar) calendarService.sync(draft, previous) else {
+                            val removed = previous?.source == EventSource.AppCalendar && calendarService.deleteCalendarEvent(previous)
+                            if (previous?.source == EventSource.AppCalendar && !removed) {
+                                return@withContext CalendarSyncResult(previous, CalendarSyncBlock.SourceUnavailable)
+                            }
+                            CalendarSyncResult(draft.copy(
+                                source = EventSource.Local,
+                                calendarEventId = if (removed || previous?.source != EventSource.ImportedCalendar) null else previous.calendarEventId,
+                                calendarItemId = if (removed || previous?.source != EventSource.ImportedCalendar) null else previous.calendarItemId,
+                            ))
+                        }
+                        if (result.blocked == null) {
+                            app.repository.upsert(result.event)
+                            app.reminderScheduler.schedule(result.event)
+                        }
+                        result
+                    }
+
+                    fun showSyncBlock(block: CalendarSyncBlock) {
+                        val message = when (block) {
+                            CalendarSyncBlock.UnsupportedRule -> R.string.calendar_rule_save_blocked
+                            CalendarSyncBlock.SourceUnavailable -> R.string.calendar_source_unavailable
+                        }
+                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+                    }
+
                     LaunchedEffect(events) {
                         updateWidget()
                     }
 
-                    NavHost(navController = navController, startDestination = "home") {
+                    NavHost(navController = navController, startDestination = "home", modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
                         composable("home") {
                             HomeScreen(
                                 events = events,
@@ -66,10 +98,19 @@ class MainActivity : ComponentActivity() {
                                 onRefresh = {
                                     scope.launch {
                                         refreshing = true
-                                        withContext(Dispatchers.IO) {
-                                            val merged = calendarService.importImportantEvents(events)
-                                            app.repository.replaceAll(merged)
+                                        val result = withContext(Dispatchers.IO) {
+                                            val current = app.repository.events.first()
+                                            val imported = calendarService.importImportantEvents(current)
+                                            if (!imported.failed) {
+                                                val retainedIds = imported.events.map { it.id }.toSet()
+                                                current.filterNot { it.id in retainedIds }.forEach { app.reminderScheduler.cancel(it.id) }
+                                                app.repository.replaceAll(imported.events)
+                                                imported.events.forEach(app.reminderScheduler::schedule)
+                                            }
+                                            imported
                                         }
+                                        if (result.failed) Toast.makeText(this@MainActivity, R.string.calendar_refresh_failed, Toast.LENGTH_LONG).show()
+                                        else if (result.skippedCount > 0) Toast.makeText(this@MainActivity, getString(R.string.calendar_rules_skipped, result.skippedCount), Toast.LENGTH_LONG).show()
                                         updateWidget()
                                         refreshing = false
                                     }
@@ -91,12 +132,13 @@ class MainActivity : ComponentActivity() {
                                     scope.launch {
                                         val isFirstEvent = events.isEmpty()
                                         saving = true
-                                        val saved = withContext(Dispatchers.IO) {
-                                            val synced = if (syncToCalendar) calendarService.sync(draft) else draft.copy(source = EventSource.Local)
-                                            app.repository.upsert(synced)
-                                            app.reminderScheduler.schedule(synced)
-                                            synced
+                                        val result = saveEvent(draft, syncToCalendar)
+                                        if (result.blocked != null) {
+                                            saving = false
+                                            showSyncBlock(result.blocked)
+                                            return@launch
                                         }
+                                        val saved = result.event
                                         updateWidget()
                                         saving = false
                                         if (syncToCalendar && saved.source == EventSource.Local) {
@@ -177,21 +219,13 @@ class MainActivity : ComponentActivity() {
                                     onSave = { draft, syncToCalendar ->
                                         scope.launch {
                                             saving = true
-                                            val saved = withContext(Dispatchers.IO) {
-                                                val synced = if (syncToCalendar) {
-                                                    calendarService.sync(draft)
-                                                } else {
-                                                    val removedFromCalendar = existing.source == EventSource.AppCalendar && calendarService.deleteCalendarEvent(existing)
-                                                    draft.copy(
-                                                        source = EventSource.Local,
-                                                        calendarEventId = if (removedFromCalendar || existing.source == EventSource.Local) null else existing.calendarEventId,
-                                                        calendarItemId = if (removedFromCalendar || existing.source == EventSource.Local) null else existing.calendarItemId,
-                                                    )
-                                                }
-                                                app.repository.upsert(synced)
-                                                app.reminderScheduler.schedule(synced)
-                                                synced
+                                            val result = saveEvent(draft, syncToCalendar, existing)
+                                            if (result.blocked != null) {
+                                                saving = false
+                                                showSyncBlock(result.blocked)
+                                                return@launch
                                             }
+                                            val saved = result.event
                                             updateWidget()
                                             saving = false
                                             if (syncToCalendar && saved.source == EventSource.Local) {

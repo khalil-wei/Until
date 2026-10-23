@@ -5,17 +5,17 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.provider.CalendarContract
 import androidx.core.content.ContextCompat
-import com.khalil.until.core.domain.CountdownCalculator
 import com.khalil.until.core.model.CountdownEvent
-import com.khalil.until.core.model.EventCategory
 import com.khalil.until.core.model.EventDateCalendar
 import com.khalil.until.core.model.EventSource
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
+import java.util.Locale
 
 class AndroidCalendarService(private val context: Context) {
     private val resolver get() = context.contentResolver
@@ -23,112 +23,147 @@ class AndroidCalendarService(private val context: Context) {
     fun canRead(): Boolean = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
     fun canWrite(): Boolean = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
 
-    fun importImportantEvents(existing: List<CountdownEvent>): List<CountdownEvent> {
-        if (!canRead()) return existing
-        val knownCalendarIds = existing.mapNotNull { it.calendarEventId }.toSet()
-        val imported = mutableListOf<CountdownEvent>()
-        val projection = arrayOf(
-            CalendarContract.Instances.EVENT_ID,
-            CalendarContract.Instances.CALENDAR_ID,
-            CalendarContract.Instances.TITLE,
-            CalendarContract.Instances.BEGIN,
-            CalendarContract.Instances.DESCRIPTION,
-            CalendarContract.Instances.ALL_DAY,
-        )
-        val start = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val end = LocalDate.now().plusYears(2).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val instancesUri = CalendarContract.Instances.CONTENT_URI.buildUpon().also {
-            ContentUris.appendId(it, start)
-            ContentUris.appendId(it, end)
-        }.build()
-        val seenEventIds = mutableSetOf<String>()
-        resolver.query(instancesUri, projection, null, null, CalendarContract.Instances.BEGIN)?.use { cursor ->
-            val idIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.EVENT_ID)
-            val calendarIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.CALENDAR_ID)
-            val titleIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.TITLE)
-            val dateIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.BEGIN)
-            val descriptionIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.DESCRIPTION)
-            val allDayIndex = cursor.getColumnIndexOrThrow(CalendarContract.Instances.ALL_DAY)
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idIndex).toString()
-                if (id in knownCalendarIds || !seenEventIds.add(id)) continue
-                val title = cursor.getString(titleIndex)?.trim().orEmpty()
-                val category = classify(title) ?: continue
-                val zone = if (cursor.getInt(allDayIndex) == 1) ZoneOffset.UTC else ZoneId.systemDefault()
-                val originalDate = Instant.ofEpochMilli(cursor.getLong(dateIndex)).atZone(zone).toLocalDate()
-                imported += CountdownEvent(
-                    id = "calendar-$id-${cursor.getLong(calendarIndex)}",
-                    title = title,
-                    originalEpochDay = originalDate.toEpochDay(),
-                    category = category,
-                    dateCalendar = EventDateCalendar.Gregorian,
-                    source = EventSource.ImportedCalendar,
-                    calendarEventId = id,
-                    calendarItemId = cursor.getLong(calendarIndex).toString(),
-                    notes = cursor.getString(descriptionIndex),
-                )
+    fun importImportantEvents(existing: List<CountdownEvent>): CalendarImportResult {
+        if (!canRead()) return CalendarImportResult(existing)
+        return try {
+            val exceptions = exceptionParents()
+            val snapshots = linkedMapOf<String, CalendarSnapshot>()
+            val instancesUri = CalendarContract.Instances.CONTENT_URI.buildUpon().also {
+                ContentUris.appendId(it, LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())
+                ContentUris.appendId(it, LocalDate.now().plusYears(2).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())
+            }.build()
+            val projection = arrayOf(CalendarContract.Instances.EVENT_ID) + SNAPSHOT_COLUMNS
+            requireNotNull(resolver.query(instancesUri, projection, null, null, CalendarContract.Instances.BEGIN)).use { cursor ->
+                while (cursor.moveToNext()) {
+                    snapshot(cursor, CalendarContract.Instances.EVENT_ID, exceptions)?.let { snapshots[it.eventId] = it }
+                }
             }
-        }
-        val local = existing.filterNot { it.source == EventSource.ImportedCalendar }
-        return (local + imported).fold(emptyList()) { result, candidate ->
-            if (result.any { CountdownCalculator.matchesSameAnnualEvent(it, candidate) && it.calendarEventId == candidate.calendarEventId }) result
-            else result + candidate
+            // Re-read old imports even if there is no instance in the two-year window.
+            val knownIds = existing.filter { it.source == EventSource.ImportedCalendar }.mapNotNull { it.calendarEventId }.distinct()
+            for (ids in knownIds.chunked(200)) {
+                val selection = "${CalendarContract.Events._ID} IN (${ids.joinToString(",") { "?" }})"
+                requireNotNull(resolver.query(CalendarContract.Events.CONTENT_URI, arrayOf(CalendarContract.Events._ID) + SNAPSHOT_COLUMNS, selection, ids.toTypedArray(), null)).use { cursor ->
+                    while (cursor.moveToNext()) {
+                        snapshot(cursor, CalendarContract.Events._ID, exceptions)?.let { snapshots[it.eventId] = it }
+                    }
+                }
+            }
+            CalendarIntegrationRules.merge(existing, snapshots.values.toList())
+        } catch (_: Exception) {
+            // A failed/null provider query must never empty the local store.
+            CalendarImportResult(existing, failed = true)
         }
     }
 
-    fun sync(event: CountdownEvent): CountdownEvent {
-        if (!canWrite() || event.dateCalendar == EventDateCalendar.Lunar) return event.copy(source = EventSource.Local)
+    fun sync(event: CountdownEvent, previous: CountdownEvent? = null): CalendarSyncResult {
         val existingId = event.calendarEventId?.toLongOrNull()
+        if (!canWrite() && existingId != null) return CalendarSyncResult(previous ?: event, CalendarSyncBlock.SourceUnavailable)
+        if (!canWrite() || event.dateCalendar == EventDateCalendar.Lunar) return CalendarSyncResult(event.copy(source = EventSource.Local))
+        var resolved = event
+        var replaceSchedule = true
+        var source: CalendarSnapshot? = null
+        if (existingId != null) {
+            source = try {
+                if (!canRead()) null else readSource(existingId)
+            } catch (_: Exception) { null }
+            if (source == null) return CalendarSyncResult(previous ?: event, CalendarSyncBlock.SourceUnavailable)
+            val plan = CalendarIntegrationRules.writePlan(event, previous ?: event, source)
+                ?: return CalendarSyncResult(previous ?: event, CalendarSyncBlock.UnsupportedRule)
+            resolved = plan.event
+            replaceSchedule = plan.replaceSchedule
+        }
         val values = ContentValues().apply {
-            put(CalendarContract.Events.TITLE, event.title)
-            put(CalendarContract.Events.DESCRIPTION, event.notes.orEmpty() + "\n[Until:${event.id}]")
-            put(CalendarContract.Events.DTSTART, event.originalDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli())
-            put(CalendarContract.Events.DURATION, "P1D")
-            put(CalendarContract.Events.ALL_DAY, 1)
-            put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
-            put(CalendarContract.Events.RRULE, "FREQ=YEARLY")
+            put(CalendarContract.Events.TITLE, resolved.title)
+            val marker = if (resolved.source == EventSource.ImportedCalendar) "" else "\n[Until:${resolved.id}]"
+            put(CalendarContract.Events.DESCRIPTION, resolved.notes.orEmpty() + marker)
+            if (replaceSchedule) {
+                put(CalendarContract.Events.DTSTART, resolved.originalDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli())
+                putNull(CalendarContract.Events.DTEND)
+                put(CalendarContract.Events.DURATION, "P1D")
+                put(CalendarContract.Events.ALL_DAY, 1)
+                put(CalendarContract.Events.EVENT_TIMEZONE, "UTC")
+                put(CalendarContract.Events.RRULE, "FREQ=${resolved.recurrence.name.uppercase(Locale.ROOT)}")
+            }
         }
-        val updatedId = existingId?.takeIf {
-            resolver.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, it), values, null, null) > 0
+        return try {
+            val calendarId: String
+            val eventId: Long
+            if (existingId != null) {
+                if (resolver.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, existingId), values, null, null) <= 0) {
+                    return CalendarSyncResult(previous ?: event, CalendarSyncBlock.SourceUnavailable)
+                }
+                eventId = existingId
+                calendarId = requireNotNull(source).calendarId
+            } else {
+                val writable = writableCalendarId() ?: return CalendarSyncResult(event.copy(source = EventSource.Local))
+                values.put(CalendarContract.Events.CALENDAR_ID, writable)
+                eventId = resolver.insert(CalendarContract.Events.CONTENT_URI, values)?.lastPathSegment?.toLongOrNull()
+                    ?: return CalendarSyncResult(event.copy(source = EventSource.Local))
+                calendarId = writable.toString()
+            }
+            val ownership = if (event.source == EventSource.ImportedCalendar && !replaceSchedule) EventSource.ImportedCalendar else EventSource.AppCalendar
+            CalendarSyncResult(resolved.copy(source = ownership, calendarEventId = eventId.toString(), calendarItemId = calendarId))
+        } catch (_: Exception) {
+            if (existingId != null) CalendarSyncResult(previous ?: event, CalendarSyncBlock.SourceUnavailable)
+            else CalendarSyncResult(event.copy(source = EventSource.Local))
         }
-        if (existingId != null && updatedId == null && event.source != EventSource.AppCalendar) {
-            return event.copy(source = EventSource.Local)
+    }
+
+    private fun readSource(id: Long): CalendarSnapshot? {
+        val exceptions = exceptionParents()
+        return requireNotNull(resolver.query(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, id), arrayOf(CalendarContract.Events._ID) + SNAPSHOT_COLUMNS, null, null, null)).use { cursor ->
+            if (cursor.moveToFirst()) snapshot(cursor, CalendarContract.Events._ID, exceptions) else null
         }
-        val eventId = updatedId ?: run {
-            val calendarId = writableCalendarId() ?: return event.copy(source = EventSource.Local)
-            values.put(CalendarContract.Events.CALENDAR_ID, calendarId)
-            resolver.insert(CalendarContract.Events.CONTENT_URI, values)?.lastPathSegment?.toLongOrNull()
-                ?: return event.copy(source = EventSource.Local)
+    }
+
+    private fun exceptionParents(): Set<String> =
+        requireNotNull(resolver.query(CalendarContract.Events.CONTENT_URI, arrayOf(CalendarContract.Events.ORIGINAL_ID), "${CalendarContract.Events.ORIGINAL_ID} IS NOT NULL", null, null)).use { cursor ->
+            buildSet { while (cursor.moveToNext()) add(cursor.getLong(0).toString()) }
         }
-        return event.copy(source = EventSource.AppCalendar, calendarEventId = eventId.toString())
+
+    private fun snapshot(cursor: Cursor, idColumn: String, exceptions: Set<String>): CalendarSnapshot? {
+        fun index(column: String) = cursor.getColumnIndexOrThrow(column)
+        fun text(column: String): String? = cursor.getString(index(column))
+        if (cursor.getInt(index(CalendarContract.Events.DELETED)) != 0 || !cursor.isNull(index(CalendarContract.Events.ORIGINAL_ID))) return null
+        val id = cursor.getLong(index(idColumn)).toString()
+        require(!cursor.isNull(index(CalendarContract.Events.DTSTART)))
+        val allDay = cursor.getInt(index(CalendarContract.Events.ALL_DAY)) == 1
+        val zone = if (allDay) ZoneOffset.UTC else runCatching { ZoneId.of(text(CalendarContract.Events.EVENT_TIMEZONE)) }.getOrDefault(ZoneId.systemDefault())
+        val original = Instant.ofEpochMilli(cursor.getLong(index(CalendarContract.Events.DTSTART))).atZone(zone).toLocalDate()
+        return CalendarSnapshot(
+            eventId = id,
+            calendarId = cursor.getLong(index(CalendarContract.Events.CALENDAR_ID)).toString(),
+            title = text(CalendarContract.Events.TITLE)?.trim().orEmpty(),
+            originalDate = original,
+            description = text(CalendarContract.Events.DESCRIPTION),
+            rrule = text(CalendarContract.Events.RRULE), rdate = text(CalendarContract.Events.RDATE),
+            exdate = text(CalendarContract.Events.EXDATE), exrule = text(CalendarContract.Events.EXRULE),
+            hasExceptions = id in exceptions,
+        )
     }
 
     fun deleteCalendarEvent(event: CountdownEvent): Boolean {
         if (!canWrite()) return false
         val id = event.calendarEventId?.toLongOrNull() ?: return false
-        return resolver.delete(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, id), null, null) > 0
+        return runCatching { resolver.delete(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, id), null, null) > 0 }.getOrDefault(false)
     }
 
     private fun writableCalendarId(): Long? {
         if (!canRead()) return null
-        val projection = arrayOf(CalendarContract.Calendars._ID)
-        val selection = "${CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL}>=? AND ${CalendarContract.Calendars.VISIBLE}=1"
         resolver.query(
-            CalendarContract.Calendars.CONTENT_URI,
-            projection,
-            selection,
-            arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString()),
-            "${CalendarContract.Calendars.IS_PRIMARY} DESC",
+            CalendarContract.Calendars.CONTENT_URI, arrayOf(CalendarContract.Calendars._ID),
+            "${CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL}>=? AND ${CalendarContract.Calendars.VISIBLE}=1",
+            arrayOf(CalendarContract.Calendars.CAL_ACCESS_CONTRIBUTOR.toString()), "${CalendarContract.Calendars.IS_PRIMARY} DESC",
         )?.use { if (it.moveToFirst()) return it.getLong(0) }
         return null
     }
 
-    private fun classify(title: String): EventCategory? {
-        val normalized = title.lowercase()
-        return when {
-            listOf("生日", "birthday", "诞辰").any(normalized::contains) -> EventCategory.Birthday
-            listOf("纪念", "anniversary", "周年").any(normalized::contains) -> EventCategory.Anniversary
-            else -> null
-        }
+    private companion object {
+        val SNAPSHOT_COLUMNS = arrayOf(
+            CalendarContract.Events.CALENDAR_ID, CalendarContract.Events.TITLE, CalendarContract.Events.DTSTART,
+            CalendarContract.Events.DESCRIPTION, CalendarContract.Events.ALL_DAY, CalendarContract.Events.EVENT_TIMEZONE,
+            CalendarContract.Events.RRULE, CalendarContract.Events.RDATE, CalendarContract.Events.EXDATE,
+            CalendarContract.Events.EXRULE, CalendarContract.Events.ORIGINAL_ID, CalendarContract.Events.DELETED,
+        )
     }
 }

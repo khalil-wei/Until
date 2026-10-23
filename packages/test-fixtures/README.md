@@ -8,6 +8,8 @@
 - `dedupe-cases.json`
 - `lunar-date-cases.json`
 - `reminder-cases.json`
+- `recurrence-cases.json`：Android 已接入，覆盖每月/每周、短月、闰月、跨年及未来首次日期。
+- `calendar-rule-cases.json`：Android 已接入，覆盖系统日历简单规则识别和复杂规则拒绝，当前仅 Android 提供对应导入保护。
 - `easter-egg-cases.json`
 
 当前样例文件已存在，但三端测试尚未统一读取它们。新增可数据化复现的规则时，应先补充样例，并逐步在 iOS、HarmonyOS 与 Android 测试中接入。

@@ -1,0 +1,12 @@
+[
+  {"name":"monthly","rrule":"FREQ=MONTHLY","expected":"Monthly"},
+  {"name":"weekly-single-weekday","rrule":"FREQ=WEEKLY;BYDAY=MO;WKST=SU","expected":"Weekly"},
+  {"name":"yearly-explicit-date","rrule":"FREQ=YEARLY;BYMONTH=10;BYMONTHDAY=23","expected":"Yearly"},
+  {"name":"interval-two","rrule":"FREQ=WEEKLY;INTERVAL=2","expected":null},
+  {"name":"multiple-weekdays","rrule":"FREQ=WEEKLY;BYDAY=MO,FR","expected":null},
+  {"name":"finite-count","rrule":"FREQ=MONTHLY;COUNT=12","expected":null},
+  {"name":"finite-end","rrule":"FREQ=MONTHLY;UNTIL=20301231T000000Z","expected":null},
+  {"name":"last-day","rrule":"FREQ=MONTHLY;BYMONTHDAY=-1","expected":null},
+  {"name":"ordinal-weekday","rrule":"FREQ=MONTHLY;BYDAY=1MO","expected":null},
+  {"name":"nonrecurring","rrule":null,"expected":null}
+]

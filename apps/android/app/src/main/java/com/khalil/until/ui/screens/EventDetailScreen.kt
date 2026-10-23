@@ -135,6 +135,8 @@ fun EventDetailScreen(event: CountdownEvent, onDone: () -> Unit, onEdit: () -> U
                 DetailDivider()
                 DetailInfoRow(stringResource(R.string.calendar_label), if (event.dateCalendar == EventDateCalendar.Lunar) stringResource(R.string.lunar) else stringResource(R.string.gregorian), "◇", UrgencySoon)
                 DetailDivider()
+                DetailInfoRow(stringResource(R.string.recurrence_label), EventPresentation.recurrenceLabel(context, event.recurrence), "↻", MaterialTheme.colorScheme.primary)
+                DetailDivider()
                 DetailInfoRow(stringResource(R.string.reminder), reminderLabel(event.reminderLeadTime), "◉", UrgencySoon)
             }
 

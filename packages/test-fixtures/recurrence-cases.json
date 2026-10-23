@@ -1,0 +1,16 @@
+[
+  {"name":"monthly-last-day-skips-february","recurrence":"monthly","calendar":"gregorian","originalDate":"2024-01-31","referenceDate":"2024-02-01","expected":"2024-03-31"},
+  {"name":"monthly-today","recurrence":"monthly","calendar":"gregorian","originalDate":"2000-01-23","referenceDate":"2026-10-23","expected":"2026-10-23"},
+  {"name":"monthly-passed-day","recurrence":"monthly","calendar":"gregorian","originalDate":"2000-01-15","referenceDate":"2026-10-23","expected":"2026-11-15"},
+  {"name":"monthly-year-boundary","recurrence":"monthly","calendar":"gregorian","originalDate":"2000-01-15","referenceDate":"2026-12-16","expected":"2027-01-15"},
+  {"name":"monthly-february-29-leap-year","recurrence":"monthly","calendar":"gregorian","originalDate":"2000-01-29","referenceDate":"2024-02-01","expected":"2024-02-29"},
+  {"name":"monthly-february-29-common-year","recurrence":"monthly","calendar":"gregorian","originalDate":"2000-01-29","referenceDate":"2025-02-01","expected":"2025-03-29"},
+  {"name":"monthly-future-anchor","recurrence":"monthly","calendar":"gregorian","originalDate":"2027-10-23","referenceDate":"2026-10-23","expected":"2027-10-23"},
+  {"name":"lunar-monthly-includes-leap-month","recurrence":"monthly","calendar":"lunar","originalDate":"2023-02-20","referenceDate":"2023-03-21","expected":"2023-03-22"},
+  {"name":"lunar-monthly-skips-short-months","recurrence":"monthly","calendar":"lunar","originalDate":"2023-03-21","referenceDate":"2023-03-22","expected":"2023-06-17"},
+  {"name":"weekly-today","recurrence":"weekly","calendar":"gregorian","originalDate":"2026-10-16","referenceDate":"2026-10-23","expected":"2026-10-23"},
+  {"name":"weekly-next-week","recurrence":"weekly","calendar":"gregorian","originalDate":"2026-10-16","referenceDate":"2026-10-24","expected":"2026-10-30"},
+  {"name":"weekly-year-boundary","recurrence":"weekly","calendar":"gregorian","originalDate":"2026-12-25","referenceDate":"2026-12-26","expected":"2027-01-01"},
+  {"name":"weekly-future-anchor","recurrence":"weekly","calendar":"gregorian","originalDate":"2027-10-23","referenceDate":"2026-10-23","expected":"2027-10-23"},
+  {"name":"weekly-lunar-is-still-seven-days","recurrence":"weekly","calendar":"lunar","originalDate":"2023-03-22","referenceDate":"2023-03-23","expected":"2023-03-29"}
+]

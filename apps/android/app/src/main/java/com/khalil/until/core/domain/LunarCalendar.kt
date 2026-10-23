@@ -9,6 +9,7 @@ object LunarCalendar {
     private const val MIN_YEAR = 1900
     private const val MAX_YEAR = 2100
     private val baseDate = LocalDate.of(1900, 1, 31)
+    val supportedYears: IntRange = MIN_YEAR..MAX_YEAR
 
     private val lunarInfo = intArrayOf(
         0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
@@ -46,11 +47,68 @@ object LunarCalendar {
         return null
     }
 
+    fun lunarToSolar(date: LunarDate): LocalDate? {
+        val days = daysInMonth(date.year, date.month, date.isLeapMonth) ?: return null
+        if (date.day !in 1..days) return null
+        var offset = 0L
+        for (year in MIN_YEAR until date.year) offset += monthsInYear(year).sumOf { it.days }
+        for (month in monthsInYear(date.year)) {
+            if (month.month == date.month && month.leap == date.isLeapMonth) {
+                return baseDate.plusDays(offset + date.day - 1)
+            }
+            offset += month.days
+        }
+        return null
+    }
+
+    fun daysInMonth(year: Int, month: Int, isLeapMonth: Boolean = false): Int? {
+        if (year !in supportedYears) return null
+        return monthsInYear(year).firstOrNull { it.month == month && it.leap == isLeapMonth }?.days
+    }
+
+    /** Preserve the month when changing years, and clamp days for short lunar months. */
+    fun normalizeSelection(date: LunarDate): LunarDate? {
+        val leap = date.isLeapMonth && daysInMonth(date.year, date.month, true) != null
+        val days = daysInMonth(date.year, date.month, leap) ?: return null
+        return date.copy(isLeapMonth = leap, day = date.day.coerceIn(1, days))
+    }
+
+    fun months(year: Int): List<Pair<Int, Boolean>> =
+        if (year in supportedYears) monthsInYear(year).map { it.month to it.leap } else emptyList()
+
+    fun monthLabel(month: Int, isLeapMonth: Boolean, chinese: Boolean): String {
+        require(month in 1..12)
+        if (!chinese) return "${if (isLeapMonth) "Leap " else ""}$month"
+        val names = arrayOf("正", "二", "三", "四", "五", "六", "七", "八", "九", "十", "冬", "腊")
+        return "${if (isLeapMonth) "闰" else ""}${names[month - 1]}月"
+    }
+
+    fun dayLabel(day: Int, chinese: Boolean): String = if (chinese) chineseDay(day) else day.toString()
+
+    fun formattedDate(date: LocalDate, chinese: Boolean): String {
+        val lunar = solarToLunar(date) ?: return unsupportedLabel(chinese)
+        val monthDay = formattedMonthDay(date, chinese)
+        return if (chinese) "农历 ${lunar.year}年$monthDay" else "Lunar ${lunar.year}/$monthDay"
+    }
+
     fun nextOccurrence(originalDate: LocalDate, referenceDate: LocalDate = LocalDate.now()): LocalDate {
         if (!originalDate.isBefore(referenceDate)) return originalDate
         val source = solarToLunar(originalDate) ?: return originalDate
         findMatch(source, referenceDate, requireExactLeap = true, searchDays = 800)?.let { return it }
         if (source.isLeapMonth) findMatch(source, referenceDate, requireExactLeap = false, searchDays = 400)?.let { return it }
+        return originalDate
+    }
+
+    fun nextMonthlyOccurrence(originalDate: LocalDate, referenceDate: LocalDate = LocalDate.now()): LocalDate {
+        if (!originalDate.isBefore(referenceDate)) return originalDate
+        val source = solarToLunar(originalDate) ?: return originalDate
+        val reference = solarToLunar(referenceDate) ?: return originalDate
+        for (year in reference.year..MAX_YEAR) {
+            for ((month, leap) in months(year)) {
+                val candidate = lunarToSolar(LunarDate(year, month, source.day, leap)) ?: continue
+                if (!candidate.isBefore(referenceDate)) return candidate
+            }
+        }
         return originalDate
     }
 
@@ -61,11 +119,12 @@ object LunarCalendar {
     }
 
     fun formattedMonthDay(date: LocalDate, chinese: Boolean): String {
-        val lunar = solarToLunar(date) ?: return if (chinese) "${date.monthValue}月${date.dayOfMonth}日" else "${date.monthValue}/${date.dayOfMonth}"
+        val lunar = solarToLunar(date) ?: return unsupportedLabel(chinese)
         if (!chinese) return "${if (lunar.isLeapMonth) "Leap " else ""}${lunar.month}/${lunar.day}"
-        val months = arrayOf("", "正", "二", "三", "四", "五", "六", "七", "八", "九", "十", "冬", "腊")
-        return "${if (lunar.isLeapMonth) "闰" else ""}${months[lunar.month]}月${chineseDay(lunar.day)}"
+        return monthLabel(lunar.month, lunar.isLeapMonth, chinese) + chineseDay(lunar.day)
     }
+
+    private fun unsupportedLabel(chinese: Boolean) = if (chinese) "超出农历支持范围" else "Outside supported lunar range"
 
     private fun findMatch(source: LunarDate, reference: LocalDate, requireExactLeap: Boolean, searchDays: Int): LocalDate? {
         for (offset in 0..searchDays) {
